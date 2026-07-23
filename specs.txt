@@ -1,1 +1,702 @@
-A political map news tool organizes current events left-to-right by political leaning, utilizing a split-column browser interface with a central search bar, color-coded bias indicators, and balanced multi-source comparison views.User Experience (UX) & User Interface (UI) DesignLayout Structure:Top Anchor: Centered persistent search bar with a prominent "Map the News" action button and quick-filter tag pills (e.g., Economy, Elections, Foreign Policy).Three-Column Canvas: Left pane for Progressive/Left-leaning coverage, Center pane for Neutral/Fact-focused wire services, and Right pane for Conservative/Right-leaning coverage.Visual Weight: Card-based story layout where headline font sizes scale dynamically based on story reach and source credibility scores.Color System & Accessibility:Left Column Accent: Cool blue/teal tint (#E3F2FD) for left-leaning publication badges.Center Column Accent: Neutral slate/gray tint (#F1F3F4) for center/factual reporting.Right Column Accent: Warm coral/red tint (#FFEBEE) for right-leaning publication badges.Contrast Check: WCAG AAA compliant text colors to ensure high legibility across split panels.Interactive Micro-Gestures:Hover Sync: Hovering over an article card in one column highlights corresponding coverage or missing blindspots in the opposing columns by 40%.Side-by-Side Drawer: Clicking "Compare Framing" slides open a bottom or side split drawer showing exact headline and subtext discrepancies side-by-side.Business RequirementsData Ingestion & Processing Engine:Source Aggregation: Real-time ingestion pipelines pulling from 50,000+ global RSS feeds, APIs, and verified independent outlets.NLP Bias Classification: Automated Large Language Model (LLM) classification engine mapping publishers to Left, Lean-Left, Center, Lean-Right, and Right spectrums using data from accredited media watchdogs (like AllSides or Ad Fontes).Core Functional Modules:Search & Topic Clustering: Grouping disparate headlines talking about the exact same real-time event into a single unified "Story Node" distributed across the political spectrum map.Blindspot Alert System: Automated notification flags when a major story is covered exclusively by one side of the political spectrum with zero coverage on the other.Performance & Scalability:Latency Target: Sub-800ms query response time for search results mapped across the three-column layout.Data Freshness: Continuous background cron jobs updating breaking news threads every 5 minutes.
+================================================================================
+POLITICAL | MAP NEWS — Full Application Specifications
+Version: 1.0
+Last Updated: 2026-07-23
+================================================================================
+
+TABLE OF CONTENTS
+  1. Product Overview
+  2. Tech Stack
+  3. Project Structure
+  4. Feature Specifications
+     4.1 Home / Three-Column Layout
+     4.2 Sidebar Navigation
+     4.3 Search (Google News)
+     4.4 RSS Sources
+     4.5 Coverage Dashboard
+     4.6 Event Radar
+     4.7 Stock Library
+     4.8 Market Analytics
+     4.9 News vs Price
+     4.10 Settings
+     4.11 Knowledge Graph
+  5. Backend Architecture
+     5.1 News Database (news.db)
+     5.2 Stock Database (stocks.db)
+     5.3 RSS Ingestion Pipeline
+     5.4 Article Clustering Engine
+     5.5 Event Detection Engine
+     5.6 Stock Data Pipeline
+     5.7 Market Analytics Engine
+  6. API Endpoints
+  7. Data Sources
+  8. Database Schemas
+  9. Key Design Decisions
+ 10. Known Issues & Limitations
+
+================================================================================
+1. PRODUCT OVERVIEW
+================================================================================
+
+Political | Map News is a comprehensive political news aggregation and financial
+analysis tool that organizes current events across the political spectrum. It
+combines:
+
+- A bias-aware news aggregation system (52+ RSS sources)
+- A real-time Google News search engine
+- A political event detection and market impact system (GDELT + Google News RSS)
+- A stock library with 5,081 tickers and 10Y daily OHLCV data
+- A market analytics dashboard with 10 visualization tabs
+- A news-vs-price overlay tool for correlating news events with stock movements
+
+The app serves as both a media bias analysis tool and a market intelligence
+platform, connecting political events to their potential financial impact.
+
+================================================================================
+2. TECH STACK
+================================================================================
+
+Frontend:
+  - React 18 (with hooks)
+  - TypeScript
+  - Tailwind CSS
+  - Vite (dev server + bundler)
+  - All SVG charts rendered inline (no charting library)
+
+Backend:
+  - Node.js + Express
+  - TypeScript
+  - sql.js (SQLite in-memory with file persistence)
+  - rss-parser (RSS feed parsing)
+  - node-cron (scheduled ingestion every 5 minutes)
+  - express-rate-limit (100 req/min per IP)
+  - yahoo-finance2 v4 (stock data — Node.js one-by-one downloader)
+
+Python (Stock Data):
+  - Python 3
+  - yfinance (batch stock download, 50 tickers at once)
+  - pandas (data manipulation)
+  - sqlite3 (direct DB writes)
+
+Shared:
+  - shared/types.ts (TypeScript interfaces shared between client and server)
+
+Databases:
+  - server/data/news.db (articles, sources, clusters)
+  - server/data/stocks.db (stock_tickers, stock_prices, stock_meta)
+
+================================================================================
+3. PROJECT STRUCTURE
+================================================================================
+
+politicalNews/
+├── client/                          # React frontend
+│   ├── src/
+│   │   ├── App.tsx                  # Main shell, state management, page routing
+│   │   ├── api.ts                   # API client functions + TypeScript interfaces
+│   │   ├── main.tsx                 # React entry point
+│   │   ├── styles/                  # Tailwind CSS config
+│   │   └── components/
+│   │       ├── Sidebar.tsx           # Dynamic sidebar navigation (9 active items)
+│   │       ├── SearchBar.tsx         # Main search bar (home page)
+│   │       ├── FilterPills.tsx       # Topic filter pills
+│   │       ├── ThreeColumnLayout.tsx # Left/Center/Right bias column layout
+│   │       ├── ArticleCard.tsx       # Individual article card
+│   │       ├── CompareDrawer.tsx     # Side-by-side headline comparison
+│   │       ├── BlindspotAlert.tsx    # Coverage gap notifications
+│   │       ├── TopicDetailModal.tsx  # Full topic detail overlay
+│   │       ├── KnowledgeGraph.tsx    # Force-directed graph visualization
+│   │       ├── ThemeToggle.tsx       # Dark/light mode toggle
+│   │       ├── Toast.tsx             # Error toast notifications
+│   │       ├── LoadingSkeleton.tsx   # Loading placeholder
+│   │       ├── FeedManager.tsx       # RSS source management view
+│   │       ├── Settings.tsx          # Settings page (appearance/content/data)
+│   │       ├── CoverageDashboard.tsx # Bias distribution + heatmap + blindspots
+│   │       ├── LiveSearch.tsx        # Google News search with debounced input
+│   │       ├── EventRadar.tsx        # Event detection + filtering + auto-refresh
+│   │       ├── EventCard.tsx         # Individual event card
+│   │       ├── ImpactDashboard.tsx   # Event summary stats sidebar
+│   │       ├── StockLibrary.tsx      # Stock browser + chart + CSV + batch download
+│   │       ├── MarketAnalytics.tsx   # 10-tab analytics page with SVG vizs
+│   │       ├── NewsVsPrice.tsx       # News overlay on stock price chart
+│   │       └── StockHistory.tsx      # (unused/legacy)
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── server/                          # Express backend
+│   ├── src/
+│   │   ├── index.ts                 # Express app setup, route registration, cron
+│   │   ├── db.ts                    # News database (sql.js) — articles/sources/clusters
+│   │   ├── utils.ts                 # resultToObjects() helper
+│   │   ├── ingestor.ts              # RSS feed ingestion pipeline
+│   │   ├── clustering.ts            # Article clustering + story node builder
+│   │   ├── feeds.json               # 52 RSS source definitions
+│   │   ├── downloadStocks.ts        # Standalone stock download script
+│   │   ├── routes/
+│   │   │   ├── search.ts            # GET /api/search
+│   │   │   ├── topics.ts            # GET /api/topics, GET /api/topics/:id
+│   │   │   ├── blindspots.ts        # GET /api/blindspots
+│   │   │   ├── feeds.ts             # GET /api/feeds
+│   │   │   ├── breaking.ts          # GET /api/breaking
+│   │   │   ├── graph.ts             # GET /api/graph/breaking, /graph/search, /graph/topic/:id
+│   │   │   ├── googleNews.ts        # GET /api/google-news
+│   │   │   ├── events.ts            # GET /api/events
+│   │   │   ├── stocks.ts            # Stock library CRUD + batch download triggers
+│   │   │   ├── stockHistory.ts      # GET /api/stock-history (live Yahoo Finance)
+│   │   │   ├── marketAnalytics.ts   # 8 analytics endpoints
+│   │   │   └── newsVsPrice.ts       # GET /api/news-vs-price/:symbol
+│   │   └── stocks/
+│   │       ├── db.ts                # Stock database (sql.js) — tickers/prices/meta
+│   │       ├── downloader.ts        # Node.js one-by-one downloader + smart update
+│   │       └── batch_download.py    # Python batch downloader (yfinance)
+│   ├── data/
+│   │   ├── news.db                  # SQLite: articles, sources, clusters
+│   │   ├── stocks.db                # SQLite: stock_tickers, stock_prices, stock_meta
+│   │   └── stock-progress.json      # Batch download progress file
+│   └── package.json
+│
+├── shared/
+│   ├── types.ts                     # Shared TypeScript types
+│   └── package.json
+│
+├── tickers_world_stock.txt          # 5,081 stock ticker symbols
+├── specs.txt                        # This file
+└── start.cmd                        # Dev startup script
+
+================================================================================
+4. FEATURE SPECIFICATIONS
+================================================================================
+
+4.1 HOME / THREE-COLUMN LAYOUT
+───────────────────────────────
+The home view shows a search bar, topic filter pills, and a three-column layout
+that organizes articles by political bias:
+  - Left column: Progressive/Left-leaning coverage (blue tint)
+  - Center column: Neutral/Fact-focused wire services (gray tint)
+  - Right column: Conservative/Right-leaning coverage (red tint)
+
+Each article card shows title, source, excerpt, and a "Compare Framing" button.
+Hovering over an article highlights corresponding coverage in other columns.
+
+Key features:
+  - "Breaking News" button loads latest cluster of articles
+  - "Columns" vs "Graph" view toggle in header
+  - Load More pagination
+  - Blindspot alerts when bias columns are missing coverage
+
+4.2 SIDEBAR NAVIGATION
+───────────────────────
+Dynamic menu with the following items:
+  - Home (🏠) — Reset to main view
+  - Search (🔍) — Google News live search
+  - RSS Sources (📡) — Feed management
+  - Coverage (📊) — Coverage Dashboard
+  - Event Radar (🎯) — Political event detection
+  - Stock Library (📈) — 5,081 tickers with 10Y charts
+  - Market Analytics (🔍) — 10 visualization tabs
+  - News vs Price (📰) — News overlaid on stock charts
+  - Bookmarks 🔖 — Coming soon (disabled)
+  - History 🕐 — Coming soon (disabled)
+  - Saved Searches 💾 — Coming soon (disabled)
+  - Settings (⚙️) — Preferences
+
+Navigation uses action strings dispatched through handleSidebarAction().
+hideAll() resets all page states before showing the selected page.
+
+4.3 SEARCH (GOOGLE NEWS)
+─────────────────────────
+File: LiveSearch.tsx, routes/googleNews.ts
+
+Real-time Google News search with:
+  - Debounced input (400ms delay, min 2 chars)
+  - Time range filter (Any time / Past 24h / Past week / Past month)
+  - Recent searches (localStorage, max 5)
+  - Trending topics (from breaking news clusters)
+  - "Load More" pagination
+  - Article cards with source, time ago, snippets
+
+Backend proxies Google News RSS: https://news.google.com/rss/search?q=...
+Time filtering via when:1d/7d/1m in RSS query. Server-side date filtering
+applied as a fallback.
+
+4.4 RSS SOURCES
+────────────────
+File: FeedManager.tsx, routes/feeds.ts
+
+Displays all 52 RSS sources organized by bias category:
+  - Left: NYT, WaPo, CNN, MSNBC, Vox, HuffPost, Guardian, etc.
+  - Center: AP, Reuters, BBC, NPR, PBS, etc.
+  - Right: Fox News, WSJ, Breitbart, Daily Wire, Newsmax, etc.
+
+Shows source name, URL, RSS URL, bias badge, and credibility score.
+
+4.5 COVERAGE DASHBOARD
+───────────────────────
+File: CoverageDashboard.tsx
+
+Three main sections:
+  1. Overall Bias Distribution — Horizontal bar chart showing article counts
+     and percentages across 5 bias categories
+  2. Topic Coverage Matrix — Heatmap table (topics × biases) with cell
+     intensity proportional to article count. Empty cells (red) = blindspots.
+  3. Most Balanced Topics — Topics covered from all sides (lowest variance)
+  4. Coverage Gaps — Topics missing coverage from specific perspectives
+
+4.6 EVENT RADAR
+────────────────
+File: EventRadar.tsx, routes/events.ts
+
+Political event detection system that:
+  1. Fetches from GDELT DOC API (geopolitical events) + Google News RSS
+  2. Classifies events via keyword regex into 9 categories:
+     CONFLICT, TARIFF, SANCTIONS, RATE_CUT, RATE_HIKE, ELECTION,
+     SUPPLY_CHAIN, POLITICAL_CRISIS, REGULATION
+  3. Maps events to affected stock tickers/sectors (Event→Asset Mapping Table)
+  4. Determines severity: critical/high/elevated/moderate/low (based on
+     Goldstein scale approximation)
+  5. Generates BUY/SELL/HOLD signals based on severity + category
+  6. Auto-refreshes every 5 minutes
+
+UI features:
+  - Time range selector (3h/6h/12h/24h)
+  - Category filter buttons
+  - Severity filter buttons
+  - Event cards with severity badges, category tags, affected tickers
+  - Impact Dashboard sidebar with summary stats + sector impact
+
+Event-to-Asset Mapping covers:
+  CONFLICT → Defense (ITA, LMT, RTX, NOC), Energy (XLE), Gold (GLD)
+  TARIFF → Bearish: Tech (QQQ, SMH, XLK), China (FXI)
+  SANCTIONS → Uranium (CCJ, URA), Energy (XLE)
+  RATE_CUT → Bullish: Growth (QQQ, XLK), Real Estate (VNQ)
+  RATE_HIKE → Bullish: Financials (XLF). Bearish: Bonds (TLT)
+  ELECTION → Gold (GLD), Volatility (VXX)
+  SUPPLY_CHAIN → Bullish: Industrials (XLI). Bearish: Semiconductors (SMH)
+  POLITICAL_CRISIS → Gold (GLD), Treasuries (TLT), Dollar (UUP)
+
+4.7 STOCK LIBRARY
+──────────────────
+File: StockLibrary.tsx, routes/stocks.ts, stocks/db.ts, stocks/downloader.ts,
+     stocks/batch_download.py
+
+Browsing:
+  - 5,081 tickers from global exchanges (S&P 500, NASDAQ-100, FTSE 100, DAX,
+    Nikkei 225, NYSE)
+  - Search by symbol or company name
+  - Paginated grid (50 per page)
+  - Each card shows: symbol, name, exchange, market cap, sector
+
+Ticker Detail View (click a card):
+  - SVG 10-year price chart with hover tooltip (date, close, volume)
+  - Sector, industry, country, market cap badges
+  - OHLCV data table (reversed chronological)
+  - CSV download button
+
+Data Management:
+  - "Update All" button triggers batch download
+  - Progress banner with percentage, ETA, current ticker
+  - Download status polling every 3 seconds
+  - Abort/stop capability
+  - Confirmation modal before starting
+
+Download Methods:
+  1. Batch Download (Python yfinance) — PRIMARY
+     - Spawns Python process: batch_download.py
+     - Downloads 50 tickers at once (yf.download batch API)
+     - Much faster than one-by-one (~15 min vs ~3 hours)
+     - Supports --all, --update, --tickers, --batch-size flags
+     - Writes directly to SQLite + progress JSON
+
+  2. Smart Update (Node.js yahoo-finance2) — SECONDARY
+     - Downloads full 10Y for missing tickers
+     - Patches recent days for stale tickers (ones with outdated data)
+     - 600ms delay between API calls to avoid rate limiting
+
+  3. Full Download (Node.js yahoo-finance2) — LEGACY
+     - Downloads 10Y history for all tickers without prices
+     - One-by-one with retry logic
+
+4.8 MARKET ANALYTICS
+─────────────────────
+File: MarketAnalytics.tsx, routes/marketAnalytics.ts
+
+10 visualization tabs, all rendered as inline SVG:
+
+  1. Top Movers — Sortable table (1D/1W/1M change), gainers/losers/all filter
+  2. Volume Spikes — Horizontal bar chart of volume vs 20-day average
+  3. Market Heatmap — Treemap visualization (size = market cap, color = 1-day change)
+     Uses squarify algorithm for layout
+  4. Sector Rotation — Table showing sector relative strength across 1W/1M/3M/6M/1Y
+  5. Seasonality — Monthly return heatmap (10 years × 12 months) with yearly averages
+  6. Correlations — Correlation matrix (configurable symbols, default: AAPL/MSFT/GOOGL/etc.)
+     Blue = positive correlation, orange = negative
+  7. Risk/Reward — Scatter plot (volatility vs return), colored by sector
+     Shows Sharpe ratio on hover
+  8. Multi-Compare — Normalized performance chart (base = 100)
+     Enter comma-separated tickers
+  9. Event Timeline — Stock price chart with political event overlays
+     Color-coded by event category (CONFLICT=red, TARIFF=amber, etc.)
+  10. Countries — Country-level performance cards (1D/1M/1Y, total market cap)
+
+4.9 NEWS VS PRICE
+──────────────────
+File: NewsVsPrice.tsx, routes/newsVsPrice.ts
+
+Overlay political/market news articles onto a stock price chart:
+  1. Ticker search with debounced dropdown (from stock DB)
+  2. SVG 10-year price chart with news dots
+     - Blue dots = Google News articles
+     - Orange dots = GDELT historical articles
+  3. News window selector: 7d / 30d / 90d / 1y
+  4. Scrollable news feed below chart
+     - Source badges (Google News / GDELT)
+     - Title, snippet, date
+     - Hover highlight syncs with chart dots
+  5. Ticker info: symbol, name, exchange, sector, market cap
+
+Backend combines:
+  - Stock price history from SQLite
+  - Google News RSS (by company name)
+  - GDELT DOC API (by company name + ticker symbol)
+  - Deduplication by normalized title
+  - Date filtering on server side
+
+4.10 SETTINGS
+──────────────
+File: Settings.tsx
+
+Three sections:
+  Appearance:
+    - Theme: System / Light / Dark (persists to localStorage)
+    - Default View: Columns / Graph
+  Content:
+    - Default Topic Filter: None/Economy/Elections/Foreign Policy/etc.
+  Data:
+    - Clear Local Data (coming soon)
+    - Export Settings (coming soon)
+
+Settings persist to localStorage under key "politicalNewsSettings".
+
+4.11 KNOWLEDGE GRAPH
+─────────────────────
+File: KnowledgeGraph.tsx, routes/graph.ts
+
+Force-directed graph visualization showing:
+  - Source nodes (colored by bias, sized by article count)
+  - Article nodes (linked to sources)
+  - Cluster nodes (grouped topics)
+  - Edges: published_by (source→article), contains (cluster→article)
+
+Three graph views:
+  - Breaking graph: Top 10 clusters with all their articles
+  - Search graph: Articles matching query + their clusters
+  - Topic graph: All articles in a specific cluster
+
+================================================================================
+5. BACKEND ARCHITECTURE
+================================================================================
+
+5.1 NEWS DATABASE (news.db)
+───────────────────────────
+Three tables:
+  sources — 52 RSS feeds with bias classification
+  articles — All ingested articles (title, excerpt, url, published_at, cluster_id)
+  clusters — Grouped articles about the same topic
+
+Uses sql.js (SQLite compiled to WebAssembly) for in-memory operations with
+periodic file flushing. Database saved to disk on a 1-second debounce timer.
+
+5.2 STOCK DATABASE (stocks.db)
+──────────────────────────────
+Three tables:
+  stock_tickers — 5,081 tickers with metadata (name, exchange, sector, etc.)
+  stock_prices — Daily OHLCV data (2.5M+ rows)
+  stock_meta — Key-value metadata for download status tracking
+
+Same sql.js approach. Python batch downloader writes directly to the file
+via Python's sqlite3 module (separate from Node.js in-memory instance).
+
+5.3 RSS INGESTION PIPELINE
+───────────────────────────
+File: ingestor.ts
+
+1. loadFeeds() — Seeds sources from feeds.json into DB on first run
+2. ingestAll() — Fetches all 52 feeds in batches of 5 (parallel)
+3. Each feed parsed via rss-parser, up to 20 items per feed
+4. INSERT OR IGNORE prevents duplicate articles (by URL)
+5. Scheduled every 5 minutes via node-cron
+
+Note: All 52 feeds currently error with "Cannot read properties of undefined
+(reading 'indexOf')" — this is a known issue with rss-parser compatibility.
+
+5.4 ARTICLE CLUSTERING ENGINE
+──────────────────────────────
+File: clustering.ts
+
+1. Gets all unclustered articles (cluster_id IS NULL)
+2. Compares each against recent articles in existing clusters
+3. Uses string-similarity library (Dice coefficient, threshold: 0.55)
+4. Normalizes titles: lowercase, remove punctuation, filter words > 3 chars
+5. If match found: assign to existing cluster
+6. If no match: create new cluster with title as label
+7. Runs after each ingestion cycle
+
+5.5 EVENT DETECTION ENGINE
+───────────────────────────
+File: routes/events.ts
+
+Dual-source approach:
+  1. GDELT DOC API — Geopolitical event articles
+     Query: tariff, sanctions, war, military, interest rate, fed, election, etc.
+  2. Google News RSS — Political news fallback
+     4 RSS feeds covering trade war, sanctions, fed rates, military conflict
+
+Processing pipeline:
+  1. fetchGDELTEvents() + fetchRSSPoliticalNews() in parallel
+  2. processArticles():
+     a. Dedup by normalized title
+     b. classifyEvent() — keyword regex matching into 9 categories
+     c. goldsteinToSeverity() — severity from estimated Goldstein scale
+     d. determineSignal() — BUY/SELL/HOLD from severity + category
+  3. Sort by severity score, then recency
+  4. Return top 30 events with summary stats + sector impact
+
+5.6 STOCK DATA PIPELINE
+────────────────────────
+Three download methods (see section 4.7 for details):
+
+  Python Batch (batch_download.py):
+    - yf.download() for 50 tickers at once
+    - Direct SQLite writes via Python sqlite3
+    - Progress reported to stock-progress.json
+    - Spawns from Node.js via child_process.spawn
+
+  Node.js Smart Update (downloader.ts):
+    - yf.chart() for individual tickers
+    - 600ms delay between calls
+    - Phase 1: Full 10Y for missing tickers
+    - Phase 2: Recent days for stale tickers
+
+  Node.js Full Download (downloader.ts):
+    - yf.chart() for all tickers without prices
+    - Resume capability (skips existing)
+    - Retry on 429 errors (3 retries, 5s delay)
+
+5.7 MARKET ANALYTICS ENGINE
+────────────────────────────
+File: routes/marketAnalytics.ts
+
+All analytics computed server-side from stock_prices table:
+
+  Top Movers: Price comparison (latest vs 1D/1W/1M ago)
+  Volume Spikes: Today's volume vs 20-day rolling average
+  Heatmap: Latest price change + market cap for treemap
+  Sectors: Average sector returns across 5 timeframes
+  Seasonality: Monthly close-to-close returns averaged across top 200 stocks
+  Correlation: Pearson correlation of daily returns (252 trading days)
+  Risk/Reward: Annualized volatility (daily std × √252) vs annualized return
+  Countries: Country-level aggregates from top 50 stocks per country
+
+================================================================================
+6. API ENDPOINTS
+================================================================================
+
+News & Content:
+  GET /api/search?q=&page=&bias=          — Search articles by keyword
+  GET /api/topics                         — List all clusters
+  GET /api/topics/:id                     — Get topic with articles by bias
+  GET /api/blindspots                     — Topics with missing bias coverage
+  GET /api/feeds                          — List all RSS sources
+  GET /api/breaking                       — Top 20 most-article clusters
+  GET /api/google-news?q=&page=&pageSize= — Google News RSS proxy
+  GET /api/events?hours=&category=        — Event detection (GDELT + RSS)
+
+Graph:
+  GET /api/graph/breaking                 — Graph data for breaking news
+  GET /api/graph/search?q=&bias=          — Graph data for search results
+  GET /api/graph/topic/:id                — Graph data for a specific topic
+
+Stocks:
+  GET /api/stocks?search=&exchange=&page=&limit= — Paginated ticker list
+  GET /api/stocks/:symbol                 — Ticker info + 10Y history
+  GET /api/stocks/download/status         — Download/batch progress
+  GET /api/stocks/exchanges               — List distinct exchanges
+  GET /api/stocks/sectors                 — List distinct sectors
+  GET /api/stocks/stats                   — DB statistics
+  POST /api/stocks/download               — Start full Node.js download
+  POST /api/stocks/update                 — Start smart Node.js update
+  POST /api/stocks/batch-download         — Start Python batch download
+  POST /api/stocks/batch-download/abort   — Kill Python batch process
+  POST /api/stocks/download/abort         — Abort Node.js download
+  GET /api/stock-history?symbol=&range=   — Live Yahoo Finance chart data
+
+Market Analytics:
+  GET /api/market-analytics/movers        — Top gainers/losers
+  GET /api/market-analytics/volume        — Unusual volume detection
+  GET /api/market-analytics/heatmap       — Sector + stock market cap data
+  GET /api/market-analytics/sectors       — Sector rotation across timeframes
+  GET /api/market-analytics/seasonality   — Monthly return heatmap
+  GET /api/market-analytics/correlation   — Correlation matrix
+  GET /api/market-analytics/risk-reward   — Risk/reward scatter data
+  GET /api/market-analytics/countries     — Country-level performance
+
+News vs Price:
+  GET /api/news-vs-price/:symbol?days=    — Combined price + news overlay
+
+Health:
+  GET /api/health                         — Server health check
+
+Rate Limiting: 100 requests per minute per IP on all /api/* routes.
+
+================================================================================
+7. DATA SOURCES
+================================================================================
+
+News Sources (52 RSS feeds):
+  Left: NYT, WaPo, CNN, MSNBC, Vox, HuffPost, Guardian, Slate, Mother Jones,
+        Salon, Daily Beast, NBC News, CBS News, ABC News, USA Today, BuzzFeed,
+        Politico, Rolling Stone, TIME, Newsweek
+  Center: AP, Reuters, BBC News, NPR, PBS, The Hill, Axios, The Economist, WSJ
+  Right: Fox News, NY Post, Washington Times, The Blaze, Breitbart, Daily Wire,
+        Newsmax, Fox News Opinion, OAN, The Federalist, National Review,
+        Washington Examiner, Texas Tribune
+  International: BBC World, Al Jazeera, Financial Times, CNBC, MarketWatch,
+                 The Atlantic, The Yorker
+
+Stock Data:
+  - Tickers sourced from Wikipedia (S&P 500, NASDAQ-100, FTSE 100, DAX,
+    Nikkei 225, NYSE listings)
+  - Metadata from Yahoo Finance (quote API)
+  - Price history from Yahoo Finance (chart API) and yfinance (Python)
+  - 5,081 tickers across 46+ exchanges
+
+External APIs:
+  - GDELT DOC API v2 (geopolitical event articles)
+  - Google News RSS (news search, political news feeds, ticker news)
+
+================================================================================
+8. DATABASE SCHEMAS
+================================================================================
+
+NEWS DATABASE (news.db):
+
+  sources:
+    id TEXT PRIMARY KEY
+    name TEXT NOT NULL
+    url TEXT NOT NULL
+    rss_url TEXT NOT NULL
+    bias TEXT NOT NULL               -- left|lean-left|center|lean-right|right
+    credibility_score REAL DEFAULT 0.5
+    tags TEXT DEFAULT '[]'
+
+  articles:
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    source_id TEXT NOT NULL (FK → sources)
+    title TEXT NOT NULL
+    excerpt TEXT DEFAULT ''
+    url TEXT NOT NULL UNIQUE
+    published_at TEXT
+    cluster_id INTEGER (FK → clusters)
+    created_at TEXT DEFAULT (datetime('now'))
+
+  clusters:
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    topic_label TEXT NOT NULL
+    created_at TEXT DEFAULT (datetime('now'))
+
+  Indexes: idx_articles_cluster, idx_articles_source, idx_articles_published
+
+STOCK DATABASE (stocks.db):
+
+  stock_tickers:
+    symbol TEXT PRIMARY KEY
+    name TEXT NOT NULL DEFAULT ''
+    exchange TEXT DEFAULT ''
+    sector TEXT DEFAULT ''
+    industry TEXT DEFAULT ''
+    country TEXT DEFAULT ''
+    market_cap REAL DEFAULT 0
+    updated_at TEXT DEFAULT (datetime('now'))
+
+  stock_prices:
+    symbol TEXT NOT NULL
+    date TEXT NOT NULL
+    open REAL, high REAL, low REAL, close REAL
+    volume INTEGER DEFAULT 0
+    PRIMARY KEY (symbol, date)
+
+  stock_meta:
+    key TEXT PRIMARY KEY
+    value TEXT
+
+  Indexes: idx_stock_prices_symbol, idx_stock_prices_date, idx_stock_tickers_cap
+
+================================================================================
+9. KEY DESIGN DECISIONS
+================================================================================
+
+1. sql.js over better-sqlite3:
+   Used sql.js (WebAssembly SQLite) instead of native SQLite bindings for
+   simpler installation across platforms. In-memory with periodic file flush.
+
+2. Dual database separation:
+   News data (news.db) and stock data (stocks.db) use separate databases to
+   avoid schema conflicts and allow independent lifecycle management.
+
+3. Python for batch stock downloads:
+   yfinance's batch download (50 tickers at once) is ~10x faster than
+   one-by-one Node.js calls. Python script spawned as child process.
+
+4. SVG over charting libraries:
+   All charts rendered as inline SVG in React components. No D3, Chart.js,
+   or other charting library. Keeps bundle small and gives full control.
+
+5. No router — state-based navigation:
+   Single-page app with useState flags for page visibility. Simpler than
+   react-router for this use case. hideAll() pattern prevents state conflicts.
+
+6. rss-parser `when:` filter bug:
+   Google News RSS `when:` filter returns empty results. Fixed by removing
+   the filter from the RSS query and applying date filtering server-side.
+
+7. Progress JSON bridge:
+   Python batch downloader and Node.js status endpoint communicate via
+   stock-progress.json file, since sql.js in-memory DB can't see Python's
+   direct file writes until server restart.
+
+================================================================================
+10. KNOWN ISSUES & LIMITATIONS
+================================================================================
+
+1. RSS Ingestion Errors:
+   All 52 RSS sources fail with "Cannot read properties of undefined
+   (reading 'indexOf')" — likely an rss-parser version compatibility issue.
+   No articles are being ingested into the news database.
+
+2. Python/Node.js DB Concurrency:
+   Python batch downloader writes directly to stocks.db file, but Node.js
+   sql.js has the DB loaded in-memory. Status endpoint reads from progress
+   JSON as a workaround. After batch download completes, server restart
+   needed to reload DB with new data.
+
+3. Server Startup Time:
+   Server takes ~30-60 seconds to start due to RSS ingestion errors for
+   all 52 sources during initial load.
+
+4. Stock Data Freshness:
+   Stock prices are only as fresh as the last download. No automatic daily
+   update cron job implemented yet.
+
+5. No Authentication:
+   All endpoints are publicly accessible. Rate limiting (100/min) is the
+   only protection.
+
+6. Limited Chart Interactivity:
+   SVG charts have basic hover tooltips but no zoom, pan, or drill-down.
+
+7. No Service Worker / Offline:
+   App requires server connection. No offline capability or PWA features.
+
+================================================================================
+END OF SPECIFICATIONS
+================================================================================
