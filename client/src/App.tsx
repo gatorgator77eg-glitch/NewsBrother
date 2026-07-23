@@ -16,6 +16,7 @@ import CoverageDashboard from './components/CoverageDashboard';
 import LiveSearch from './components/LiveSearch';
 import EventRadar from './components/EventRadar';
 import StockHistory from './components/StockLibrary';
+import MarketAnalytics from './components/MarketAnalytics';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -49,6 +50,7 @@ export default function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showStocks, setShowStocks] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -135,6 +137,15 @@ export default function App() {
     setLoading(false);
   };
 
+  const hideAll = () => {
+    setShowSettings(false);
+    setShowCoverage(false);
+    setShowSearch(false);
+    setShowEvents(false);
+    setShowStocks(false);
+    setShowAnalytics(false);
+  };
+
   const handleSidebarAction = (action: string) => {
     switch (action) {
       case 'home':
@@ -142,59 +153,35 @@ export default function App() {
         setLoaded(false);
         setQuery('');
         setGraphData(null);
-        setShowSettings(false);
-        setShowCoverage(false);
-        setShowSearch(false);
-        setShowEvents(false);
-        setShowStocks(false);
+        hideAll();
         break;
       case 'feeds':
+        hideAll();
         setShowFeeds(true);
-        setShowSettings(false);
-        setShowCoverage(false);
-        setShowSearch(false);
-        setShowEvents(false);
-        setShowStocks(false);
         break;
       case 'settings':
+        hideAll();
         setShowSettings(true);
-        setShowFeeds(false);
-        setShowCoverage(false);
-        setShowSearch(false);
-        setShowEvents(false);
-        setShowStocks(false);
         break;
       case 'coverage':
+        hideAll();
         setShowCoverage(true);
-        setShowSettings(false);
-        setShowFeeds(false);
-        setShowSearch(false);
-        setShowEvents(false);
-        setShowStocks(false);
         break;
       case 'search':
+        hideAll();
         setShowSearch(true);
-        setShowSettings(false);
-        setShowCoverage(false);
-        setShowFeeds(false);
-        setShowEvents(false);
-        setShowStocks(false);
         break;
       case 'events':
+        hideAll();
         setShowEvents(true);
-        setShowSettings(false);
-        setShowCoverage(false);
-        setShowSearch(false);
-        setShowFeeds(false);
-        setShowStocks(false);
         break;
       case 'stocks':
+        hideAll();
         setShowStocks(true);
-        setShowSettings(false);
-        setShowCoverage(false);
-        setShowSearch(false);
-        setShowEvents(false);
-        setShowFeeds(false);
+        break;
+      case 'analytics':
+        hideAll();
+        setShowAnalytics(true);
         break;
     }
   };
@@ -318,6 +305,8 @@ export default function App() {
           <EventRadar onBack={() => setShowEvents(false)} />
         ) : showStocks ? (
           <StockHistory onBack={() => setShowStocks(false)} />
+        ) : showAnalytics ? (
+          <MarketAnalytics onBack={() => setShowAnalytics(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

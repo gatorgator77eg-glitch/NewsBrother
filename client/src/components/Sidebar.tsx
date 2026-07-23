@@ -16,6 +16,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'coverage', label: 'Coverage', icon: '📊', action: 'coverage' },
   { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
   { id: 'stocks', label: 'Stock Library', icon: '📈', action: 'stocks' },
+  { id: 'analytics', label: 'Market Analytics', icon: '🔍', action: 'analytics' },
   { id: 'divider-1', label: '', icon: '', action: '', divider: true },
   { id: 'bookmarks', label: 'Bookmarks', icon: '🔖', action: 'bookmarks', disabled: true },
   { id: 'history', label: 'History', icon: '🕐', action: 'history', disabled: true },
