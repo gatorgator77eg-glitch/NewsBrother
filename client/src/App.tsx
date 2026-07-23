@@ -17,6 +17,7 @@ import LiveSearch from './components/LiveSearch';
 import EventRadar from './components/EventRadar';
 import StockHistory from './components/StockLibrary';
 import MarketAnalytics from './components/MarketAnalytics';
+import NewsVsPrice from './components/NewsVsPrice';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -51,6 +52,7 @@ export default function App() {
   const [showEvents, setShowEvents] = useState(false);
   const [showStocks, setShowStocks] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showNewsVsPrice, setShowNewsVsPrice] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -144,6 +146,7 @@ export default function App() {
     setShowEvents(false);
     setShowStocks(false);
     setShowAnalytics(false);
+    setShowNewsVsPrice(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -182,6 +185,10 @@ export default function App() {
       case 'analytics':
         hideAll();
         setShowAnalytics(true);
+        break;
+      case 'news-vs-price':
+        hideAll();
+        setShowNewsVsPrice(true);
         break;
     }
   };
@@ -307,6 +314,8 @@ export default function App() {
           <StockHistory onBack={() => setShowStocks(false)} />
         ) : showAnalytics ? (
           <MarketAnalytics onBack={() => setShowAnalytics(false)} />
+        ) : showNewsVsPrice ? (
+          <NewsVsPrice onBack={() => setShowNewsVsPrice(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

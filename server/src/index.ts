@@ -13,6 +13,7 @@ import { googleNewsRoutes } from './routes/googleNews';
 import { eventsRoutes } from './routes/events';
 import { stocksRoutes } from './routes/stocks';
 import { marketAnalyticsRoutes } from './routes/marketAnalytics';
+import { newsVsPriceRoutes } from './routes/newsVsPrice';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
 import { clusterArticles } from './clustering';
@@ -43,6 +44,7 @@ app.use('/api', googleNewsRoutes);
 app.use('/api', eventsRoutes);
 app.use('/api', stocksRoutes);
 app.use('/api', marketAnalyticsRoutes);
+app.use('/api', newsVsPriceRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

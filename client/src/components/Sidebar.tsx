@@ -17,6 +17,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
   { id: 'stocks', label: 'Stock Library', icon: '📈', action: 'stocks' },
   { id: 'analytics', label: 'Market Analytics', icon: '🔍', action: 'analytics' },
+  { id: 'news-vs-price', label: 'News vs Price', icon: '📰', action: 'news-vs-price' },
   { id: 'divider-1', label: '', icon: '', action: '', divider: true },
   { id: 'bookmarks', label: 'Bookmarks', icon: '🔖', action: 'bookmarks', disabled: true },
   { id: 'history', label: 'History', icon: '🕐', action: 'history', disabled: true },
