@@ -224,6 +224,19 @@ export function getDownloadStatus() {
   };
 }
 
+export function getAllLastPriceDates(): Record<string, string> {
+  const result = db.exec(
+    `SELECT symbol, MAX(date) as last_date FROM stock_prices GROUP BY symbol`
+  );
+  const map: Record<string, string> = {};
+  if (result[0]) {
+    for (const row of result[0].values) {
+      map[row[0] as string] = row[1] as string;
+    }
+  }
+  return map;
+}
+
 export function setMeta(key: string, value: string) {
   db.run(`INSERT OR REPLACE INTO stock_meta (key, value) VALUES (?, ?)`, [key, value]);
   scheduleStockDbSave();

@@ -95,10 +95,10 @@ export default function StockLibrary({ onBack }: Props) {
 
   useEffect(() => {
     if (!downloadStatus) return;
-    if (downloadStatus.status === 'downloading_prices' || downloadStatus.status === 'fetching_tickers' || downloadStatus.status === 'saving_tickers') {
+    if (downloadStatus.status === 'downloading_prices' || downloadStatus.status === 'downloading_missing' || downloadStatus.status === 'updating_recent' || downloadStatus.status === 'fetching_tickers' || downloadStatus.status === 'saving_tickers' || downloadStatus.status === 'enriching_tickers' || downloadStatus.status === 'checking_existing') {
       const interval = setInterval(async () => {
         const status = await pollDownloadStatus();
-        if (status && status.status !== 'downloading_prices' && status.status !== 'fetching_tickers' && status.status !== 'saving_tickers') {
+        if (status && !['downloading_prices', 'downloading_missing', 'updating_recent', 'fetching_tickers', 'saving_tickers', 'enriching_tickers', 'checking_existing'].includes(status.status)) {
           clearInterval(interval);
           fetchTickers(search, page);
         }
@@ -117,7 +117,7 @@ export default function StockLibrary({ onBack }: Props) {
   const handleStartDownload = async () => {
     setShowDownloadConfirm(false);
     try {
-      await fetch('/api/stocks/download', { method: 'POST' });
+      await fetch('/api/stocks/update', { method: 'POST' });
       pollDownloadStatus();
     } catch (err) {
       console.error(err);
@@ -159,8 +159,12 @@ export default function StockLibrary({ onBack }: Props) {
   };
 
   const isDownloading = downloadStatus?.status === 'downloading_prices' ||
+    downloadStatus?.status === 'downloading_missing' ||
+    downloadStatus?.status === 'updating_recent' ||
     downloadStatus?.status === 'fetching_tickers' ||
-    downloadStatus?.status === 'saving_tickers';
+    downloadStatus?.status === 'saving_tickers' ||
+    downloadStatus?.status === 'enriching_tickers' ||
+    downloadStatus?.status === 'checking_existing';
 
   const downloadPct = downloadStatus && downloadStatus.totalToFetch > 0
     ? Math.round((downloadStatus.currentIndex / downloadStatus.totalToFetch) * 100)
@@ -344,7 +348,7 @@ export default function StockLibrary({ onBack }: Props) {
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
-          {isDownloading ? `Stop (${downloadPct}%)` : 'Re-download All'}
+          {isDownloading ? `Stop (${downloadPct}%)` : 'Update All'}
         </button>
       </div>
 
@@ -353,7 +357,7 @@ export default function StockLibrary({ onBack }: Props) {
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-              Downloading {downloadStatus?.currentTicker || '...'} ({downloadStatus?.currentIndex || 0}/{downloadStatus?.totalToFetch || '?'})
+              {downloadStatus?.status === 'updating_recent' ? 'Updating recent data' : 'Downloading missing tickers'} {downloadStatus?.currentTicker || '...'} ({downloadStatus?.currentIndex || 0}/{downloadStatus?.totalToFetch || '?'})
             </span>
             <span className="text-xs text-blue-500">{downloadPct}%</span>
           </div>
@@ -408,7 +412,7 @@ export default function StockLibrary({ onBack }: Props) {
         <div className="text-center py-20">
           <div className="text-5xl mb-4">📈</div>
           <p className="text-gray-500 dark:text-gray-400 text-lg">
-            {total === 0 && !search ? 'No stock data yet. Click "Re-download All" to start.' : 'No tickers found.'}
+            {total === 0 && !search ? 'No stock data yet. Click "Update All" to start.' : 'No tickers found.'}
           </p>
         </div>
       ) : (
@@ -466,17 +470,17 @@ export default function StockLibrary({ onBack }: Props) {
       {showDownloadConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowDownloadConfirm(false)}>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Re-download All Stocks?</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Update All Stocks?</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              This will fetch the top ~5000 stock tickers by market cap and download 10 years of daily price data for each.
+              Downloads missing tickers and updates recent price data for existing ones.
             </p>
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
-              <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
-                ⚠️ Careful — this will take approximately 1-2 hours and cannot be undone for tickers that already have data.
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                Missing tickers get full 10Y history. Existing tickers get data from their last date to today.
               </p>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Existing data will be skipped. You can close this page — the download continues in the background.
+              You can close this page — the update continues in the background.
             </p>
             <div className="flex gap-3">
               <button onClick={() => setShowDownloadConfirm(false)} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">

@@ -9,7 +9,7 @@ import {
   getSectors,
   getStockStats,
 } from '../stocks/db';
-import { runFullDownload, isDownloading, abortDownload } from '../stocks/downloader';
+import { runFullDownload, runSmartUpdate, isDownloading, abortDownload } from '../stocks/downloader';
 
 export const stocksRoutes = Router();
 
@@ -74,6 +74,15 @@ stocksRoutes.post('/stocks/download', async (_req, res) => {
   }
   res.json({ message: 'Download started' });
   runFullDownload().catch(err => console.error('Download failed:', err));
+});
+
+stocksRoutes.post('/stocks/update', async (_req, res) => {
+  if (isDownloading()) {
+    res.status(409).json({ error: 'Download already in progress' });
+    return;
+  }
+  res.json({ message: 'Smart update started' });
+  runSmartUpdate().catch(err => console.error('Update failed:', err));
 });
 
 stocksRoutes.post('/stocks/download/abort', (_req, res) => {
