@@ -11,7 +11,7 @@ import { breakingRoutes } from './routes/breaking';
 import { graphRoutes } from './routes/graph';
 import { googleNewsRoutes } from './routes/googleNews';
 import { eventsRoutes } from './routes/events';
-import { stockHistoryRoutes } from './routes/stockHistory';
+import { stocksRoutes } from './routes/stocks';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
 import { clusterArticles } from './clustering';
@@ -40,7 +40,7 @@ app.use('/api', breakingRoutes);
 app.use('/api', graphRoutes);
 app.use('/api', googleNewsRoutes);
 app.use('/api', eventsRoutes);
-app.use('/api', stockHistoryRoutes);
+app.use('/api', stocksRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

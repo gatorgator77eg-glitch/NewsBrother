@@ -15,7 +15,7 @@ import Settings from './components/Settings';
 import CoverageDashboard from './components/CoverageDashboard';
 import LiveSearch from './components/LiveSearch';
 import EventRadar from './components/EventRadar';
-import StockHistory from './components/StockHistory';
+import StockHistory from './components/StockLibrary';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
