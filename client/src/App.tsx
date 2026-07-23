@@ -15,6 +15,7 @@ import Settings from './components/Settings';
 import CoverageDashboard from './components/CoverageDashboard';
 import LiveSearch from './components/LiveSearch';
 import EventRadar from './components/EventRadar';
+import StockHistory from './components/StockHistory';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -47,6 +48,7 @@ export default function App() {
   const [showCoverage, setShowCoverage] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
+  const [showStocks, setShowStocks] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -144,6 +146,7 @@ export default function App() {
         setShowCoverage(false);
         setShowSearch(false);
         setShowEvents(false);
+        setShowStocks(false);
         break;
       case 'feeds':
         setShowFeeds(true);
@@ -151,6 +154,7 @@ export default function App() {
         setShowCoverage(false);
         setShowSearch(false);
         setShowEvents(false);
+        setShowStocks(false);
         break;
       case 'settings':
         setShowSettings(true);
@@ -158,6 +162,7 @@ export default function App() {
         setShowCoverage(false);
         setShowSearch(false);
         setShowEvents(false);
+        setShowStocks(false);
         break;
       case 'coverage':
         setShowCoverage(true);
@@ -165,6 +170,7 @@ export default function App() {
         setShowFeeds(false);
         setShowSearch(false);
         setShowEvents(false);
+        setShowStocks(false);
         break;
       case 'search':
         setShowSearch(true);
@@ -172,12 +178,22 @@ export default function App() {
         setShowCoverage(false);
         setShowFeeds(false);
         setShowEvents(false);
+        setShowStocks(false);
         break;
       case 'events':
         setShowEvents(true);
         setShowSettings(false);
         setShowCoverage(false);
         setShowSearch(false);
+        setShowFeeds(false);
+        setShowStocks(false);
+        break;
+      case 'stocks':
+        setShowStocks(true);
+        setShowSettings(false);
+        setShowCoverage(false);
+        setShowSearch(false);
+        setShowEvents(false);
         setShowFeeds(false);
         break;
     }
@@ -300,6 +316,8 @@ export default function App() {
           />
         ) : showEvents ? (
           <EventRadar onBack={() => setShowEvents(false)} />
+        ) : showStocks ? (
+          <StockHistory onBack={() => setShowStocks(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}
