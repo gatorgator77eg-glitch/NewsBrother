@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #f9fafb;
+    --bg-secondary: #ffffff;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+  }
+
+  .dark {
+    --bg-primary: #111827;
+    --bg-secondary: #1f2937;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+  .article-highlight {
+    @apply ring-2 ring-offset-2 ring-blue-400;
+  }
+  .dark .article-highlight {
+    @apply ring-blue-500 ring-offset-gray-900;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+  .dark .skeleton {
+    @apply bg-gray-700;
+  }
+
+  .toast-enter {
+    animation: toastIn 0.3s ease-out;
+  }
+  .toast-exit {
+    animation: toastOut 0.3s ease-in forwards;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes toastIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.drawer-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+@media (max-width: 640px) {
+  .grid-5-col {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-5-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .grid-5-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 1281px) {
+  .grid-5-col {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}

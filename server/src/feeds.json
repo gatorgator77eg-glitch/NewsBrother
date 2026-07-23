@@ -1,0 +1,470 @@
+[
+  {
+    "id": "nytimes",
+    "name": "The New York Times",
+    "url": "https://www.nytimes.com",
+    "rssUrl": "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml",
+    "bias": "left",
+    "credibilityScore": 0.85,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "washington-post",
+    "name": "The Washington Post",
+    "url": "https://www.washingtonpost.com",
+    "rssUrl": "https://feeds.washingtonpost.com/rss/politics",
+    "bias": "left",
+    "credibilityScore": 0.82,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "cnn",
+    "name": "CNN",
+    "url": "https://www.cnn.com",
+    "rssUrl": "http://rss.cnn.com/rss/cnn_allpolitics.rss",
+    "bias": "left",
+    "credibilityScore": 0.72,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "msnbc",
+    "name": "MSNBC",
+    "url": "https://www.msnbc.com",
+    "rssUrl": "https://feeds.nbcnews.com/nbcnews/politics",
+    "bias": "left",
+    "credibilityScore": 0.68,
+    "tags": ["politics"]
+  },
+  {
+    "id": "vox",
+    "name": "Vox",
+    "url": "https://www.vox.com",
+    "rssUrl": "https://www.vox.com/rss/index.xml",
+    "bias": "left",
+    "credibilityScore": 0.7,
+    "tags": ["politics", "economy"]
+  },
+  {
+    "id": "huffpost",
+    "name": "HuffPost",
+    "url": "https://www.huffpost.com",
+    "rssUrl": "https://www.huffpost.com/section/politics/feed",
+    "bias": "left",
+    "credibilityScore": 0.62,
+    "tags": ["politics"]
+  },
+  {
+    "id": "guardian",
+    "name": "The Guardian",
+    "url": "https://www.theguardian.com",
+    "rssUrl": "https://www.theguardian.com/us-news/rss",
+    "bias": "left",
+    "credibilityScore": 0.78,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "slate",
+    "name": "Slate",
+    "url": "https://slate.com",
+    "rssUrl": "https://slate.com/feeds/all.xml",
+    "bias": "left",
+    "credibilityScore": 0.68,
+    "tags": ["politics", "culture"]
+  },
+  {
+    "id": "motherjones",
+    "name": "Mother Jones",
+    "url": "https://www.motherjones.com",
+    "rssUrl": "https://www.motherjones.com/feed/",
+    "bias": "left",
+    "credibilityScore": 0.65,
+    "tags": ["politics", "environment"]
+  },
+  {
+    "id": "salon",
+    "name": "Salon",
+    "url": "https://www.salon.com",
+    "rssUrl": "https://www.salon.com/feed/",
+    "bias": "left",
+    "credibilityScore": 0.58,
+    "tags": ["politics"]
+  },
+  {
+    "id": "daily-beast",
+    "name": "The Daily Beast",
+    "url": "https://www.thedailybeast.com",
+    "rssUrl": "https://feeds.thedailybeast.com/rss/articles",
+    "bias": "left",
+    "credibilityScore": 0.6,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "nbc-news",
+    "name": "NBC News",
+    "url": "https://www.nbcnews.com",
+    "rssUrl": "https://feeds.nbcnews.com/nbcnews/politics",
+    "bias": "lean-left",
+    "credibilityScore": 0.75,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "cbs-news",
+    "name": "CBS News",
+    "url": "https://www.cbsnews.com",
+    "rssUrl": "https://www.cbsnews.com/latest/rss/politics",
+    "bias": "lean-left",
+    "credibilityScore": 0.74,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "abc-news",
+    "name": "ABC News",
+    "url": "https://abcnews.go.com",
+    "rssUrl": "https://abcnews.go.com/abcnews/politicsheadlines",
+    "bias": "lean-left",
+    "credibilityScore": 0.73,
+    "tags": ["politics"]
+  },
+  {
+    "id": "usa-today",
+    "name": "USA Today",
+    "url": "https://www.usatoday.com",
+    "rssUrl": "https://rssfeeds.usatoday.com/usatoday-NewsTopStories",
+    "bias": "lean-left",
+    "credibilityScore": 0.7,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "buzzfeed-news",
+    "name": "BuzzFeed News",
+    "url": "https://www.buzzfeednews.com",
+    "rssUrl": "https://www.buzzfeednews.com/rss",
+    "bias": "lean-left",
+    "credibilityScore": 0.6,
+    "tags": ["politics"]
+  },
+  {
+    "id": "politico",
+    "name": "Politico",
+    "url": "https://www.politico.com",
+    "rssUrl": "https://rss.politico.com/politics-news.xml",
+    "bias": "center",
+    "credibilityScore": 0.78,
+    "tags": ["politics"]
+  },
+  {
+    "id": "ap-news",
+    "name": "Associated Press",
+    "url": "https://apnews.com",
+    "rssUrl": "https://rsshub.app/apnews/topics/politics",
+    "bias": "center",
+    "credibilityScore": 0.9,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "reuters",
+    "name": "Reuters",
+    "url": "https://www.reuters.com",
+    "rssUrl": "https://www.reutersagency.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.92,
+    "tags": ["world", "economy", "politics"]
+  },
+  {
+    "id": "bbc-us",
+    "name": "BBC News (US)",
+    "url": "https://www.bbc.com/news",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "npr",
+    "name": "NPR",
+    "url": "https://www.npr.org",
+    "rssUrl": "https://feeds.npr.org/1001/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.85,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "pbs-news",
+    "name": "PBS NewsHour",
+    "url": "https://www.pbs.org/newshour",
+    "rssUrl": "https://www.pbs.org/newshour/feeds/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.86,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "the-hill",
+    "name": "The Hill",
+    "url": "https://thehill.com",
+    "rssUrl": "https://thehill.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.75,
+    "tags": ["politics"]
+  },
+  {
+    "id": "axios",
+    "name": "Axios",
+    "url": "https://www.axios.com",
+    "rssUrl": "https://api.axios.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.78,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "the-economist",
+    "name": "The Economist",
+    "url": "https://www.economist.com",
+    "rssUrl": "https://www.economist.com/united-states/rss.xml",
+    "bias": "lean-right",
+    "credibilityScore": 0.88,
+    "tags": ["politics", "economy", "world"]
+  },
+  {
+    "id": "wsj",
+    "name": "The Wall Street Journal",
+    "url": "https://www.wsj.com",
+    "rssUrl": "https://feeds.content.dowjones.io/public/rss/RSSWorldNews.xml",
+    "bias": "lean-right",
+    "credibilityScore": 0.85,
+    "tags": ["economy", "politics", "world"]
+  },
+  {
+    "id": "fox-news",
+    "name": "Fox News",
+    "url": "https://www.foxnews.com",
+    "rssUrl": "https://moxie.foxnews.com/google-publisher/latest.xml",
+    "bias": "lean-right",
+    "credibilityScore": 0.65,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "nyp",
+    "name": "New York Post",
+    "url": "https://nypost.com",
+    "rssUrl": "https://nypost.com/feed/",
+    "bias": "lean-right",
+    "credibilityScore": 0.6,
+    "tags": ["politics"]
+  },
+  {
+    "id": "washington-times",
+    "name": "The Washington Times",
+    "url": "https://www.washingtontimes.com",
+    "rssUrl": "https://www.washingtontimes.com/rss/headlines/news/politics/",
+    "bias": "lean-right",
+    "credibilityScore": 0.62,
+    "tags": ["politics"]
+  },
+  {
+    "id": "the-blaze",
+    "name": "The Blaze",
+    "url": "https://www.theblaze.com",
+    "rssUrl": "https://www.theblaze.com/rss.xml",
+    "bias": "right",
+    "credibilityScore": 0.55,
+    "tags": ["politics"]
+  },
+  {
+    "id": "breitbart",
+    "name": "Breitbart",
+    "url": "https://www.breitbart.com",
+    "rssUrl": "https://feeds.feedburner.com/breitbart",
+    "bias": "right",
+    "credibilityScore": 0.45,
+    "tags": ["politics"]
+  },
+  {
+    "id": "daily-wire",
+    "name": "The Daily Wire",
+    "url": "https://www.dailywire.com",
+    "rssUrl": "https://www.dailywire.com/feed/podcast",
+    "bias": "right",
+    "credibilityScore": 0.48,
+    "tags": ["politics"]
+  },
+  {
+    "id": "newsmax",
+    "name": "Newsmax",
+    "url": "https://www.newsmax.com",
+    "rssUrl": "https://www.newsmax.com/rss/Politics/16/",
+    "bias": "right",
+    "credibilityScore": 0.42,
+    "tags": ["politics"]
+  },
+  {
+    "id": "fox-opinion",
+    "name": "Fox News Opinion",
+    "url": "https://www.foxnews.com/category/opinion",
+    "rssUrl": "https://moxie.foxnews.com/google-publisher/politics.xml",
+    "bias": "right",
+    "credibilityScore": 0.5,
+    "tags": ["politics"]
+  },
+  {
+    "id": "oann",
+    "name": "One America News",
+    "url": "https://www.oann.com",
+    "rssUrl": "https://www.oann.com/rss/",
+    "bias": "right",
+    "credibilityScore": 0.38,
+    "tags": ["politics"]
+  },
+  {
+    "id": "federalist",
+    "name": "The Federalist",
+    "url": "https://thefederalist.com",
+    "rssUrl": "https://thefederalist.com/feed/",
+    "bias": "right",
+    "credibilityScore": 0.5,
+    "tags": ["politics"]
+  },
+  {
+    "id": "national-review",
+    "name": "National Review",
+    "url": "https://www.nationalreview.com",
+    "rssUrl": "https://www.nationalreview.com/feed/",
+    "bias": "right",
+    "credibilityScore": 0.65,
+    "tags": ["politics", "economy"]
+  },
+  {
+    "id": "wash-examiner",
+    "name": "Washington Examiner",
+    "url": "https://www.washingtonexaminer.com",
+    "rssUrl": "https://www.washingtonexaminer.com/rss.xml",
+    "bias": "right",
+    "credibilityScore": 0.55,
+    "tags": ["politics"]
+  },
+  {
+    "id": "texas-tribune",
+    "name": "The Texas Tribune",
+    "url": "https://www.texastribune.org",
+    "rssUrl": "https://www.texastribune.org/rss/all/",
+    "bias": "center",
+    "credibilityScore": 0.75,
+    "tags": ["politics", "economy"]
+  },
+  {
+    "id": "the-intercept",
+    "name": "The Intercept",
+    "url": "https://theintercept.com",
+    "rssUrl": "https://theintercept.com/feed/",
+    "bias": "left",
+    "credibilityScore": 0.68,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "propublica",
+    "name": "ProPublica",
+    "url": "https://www.propublica.org",
+    "rssUrl": "https://www.propublica.org/feed/all",
+    "bias": "center",
+    "credibilityScore": 0.85,
+    "tags": ["politics"]
+  },
+  {
+    "id": "axios-local",
+    "name": "Axios Local",
+    "url": "https://www.axios.com/local",
+    "rssUrl": "https://api.axios.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.76,
+    "tags": ["politics"]
+  },
+  {
+    "id": "bbc-world",
+    "name": "BBC World",
+    "url": "https://www.bbc.com/news/world",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.87,
+    "tags": ["world"]
+  },
+  {
+    "id": "aljazeera",
+    "name": "Al Jazeera",
+    "url": "https://www.aljazeera.com",
+    "rssUrl": "https://www.aljazeera.com/xml/rss/all.xml",
+    "bias": "lean-left",
+    "credibilityScore": 0.72,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "financial-times",
+    "name": "Financial Times",
+    "url": "https://www.ft.com",
+    "rssUrl": "https://www.ft.com/rss/home",
+    "bias": "lean-right",
+    "credibilityScore": 0.88,
+    "tags": ["economy", "world"]
+  },
+  {
+    "id": "cnbc",
+    "name": "CNBC",
+    "url": "https://www.cnbc.com",
+    "rssUrl": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114",
+    "bias": "lean-right",
+    "credibilityScore": 0.72,
+    "tags": ["economy"]
+  },
+  {
+    "id": "marketwatch",
+    "name": "MarketWatch",
+    "url": "https://www.marketwatch.com",
+    "rssUrl": "https://feeds.marketwatch.com/marketwatch/topstories/",
+    "bias": "lean-right",
+    "credibilityScore": 0.7,
+    "tags": ["economy"]
+  },
+  {
+    "id": "the-atlantic",
+    "name": "The Atlantic",
+    "url": "https://www.theatlantic.com",
+    "rssUrl": "https://www.theatlantic.com/feed/all/",
+    "bias": "left",
+    "credibilityScore": 0.78,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "new-yorker",
+    "name": "The New Yorker",
+    "url": "https://www.newyorker.com",
+    "rssUrl": "https://www.newyorker.com/feed/everything",
+    "bias": "left",
+    "credibilityScore": 0.8,
+    "tags": ["politics", "culture"]
+  },
+  {
+    "id": "rolling-stone",
+    "name": "Rolling Stone",
+    "url": "https://www.rollingstone.com",
+    "rssUrl": "https://www.rollingstone.com/feed/",
+    "bias": "left",
+    "credibilityScore": 0.6,
+    "tags": ["politics", "culture"]
+  },
+  {
+    "id": "time",
+    "name": "TIME",
+    "url": "https://time.com",
+    "rssUrl": "https://time.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.78,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "newsweek",
+    "name": "Newsweek",
+    "url": "https://www.newsweek.com",
+    "rssUrl": "https://www.newsweek.com/rss",
+    "bias": "lean-right",
+    "credibilityScore": 0.55,
+    "tags": ["politics"]
+  }
+]
