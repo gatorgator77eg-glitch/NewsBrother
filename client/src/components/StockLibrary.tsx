@@ -95,10 +95,10 @@ export default function StockLibrary({ onBack }: Props) {
 
   useEffect(() => {
     if (!downloadStatus) return;
-    if (downloadStatus.status === 'downloading_prices' || downloadStatus.status === 'downloading_missing' || downloadStatus.status === 'updating_recent' || downloadStatus.status === 'fetching_tickers' || downloadStatus.status === 'saving_tickers' || downloadStatus.status === 'enriching_tickers' || downloadStatus.status === 'checking_existing') {
+    if (downloadStatus.status === 'downloading_prices' || downloadStatus.status === 'downloading_missing' || downloadStatus.status === 'updating_recent' || downloadStatus.status === 'fetching_tickers' || downloadStatus.status === 'saving_tickers' || downloadStatus.status === 'enriching_tickers' || downloadStatus.status === 'checking_existing' || downloadStatus.status === 'batch_downloading' || downloadStatus.status === 'batch_starting') {
       const interval = setInterval(async () => {
         const status = await pollDownloadStatus();
-        if (status && !['downloading_prices', 'downloading_missing', 'updating_recent', 'fetching_tickers', 'saving_tickers', 'enriching_tickers', 'checking_existing'].includes(status.status)) {
+        if (status && !['downloading_prices', 'downloading_missing', 'updating_recent', 'fetching_tickers', 'saving_tickers', 'enriching_tickers', 'checking_existing', 'batch_downloading', 'batch_starting'].includes(status.status)) {
           clearInterval(interval);
           fetchTickers(search, page);
         }
@@ -117,7 +117,13 @@ export default function StockLibrary({ onBack }: Props) {
   const handleStartDownload = async () => {
     setShowDownloadConfirm(false);
     try {
-      await fetch('/api/stocks/update', { method: 'POST' });
+      const hasData = stats.stocksWithPrices > 0;
+      const mode = hasData ? 'update' : 'missing';
+      await fetch('/api/stocks/batch-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      });
       pollDownloadStatus();
     } catch (err) {
       console.error(err);
@@ -126,6 +132,7 @@ export default function StockLibrary({ onBack }: Props) {
 
   const handleAbortDownload = async () => {
     try {
+      await fetch('/api/stocks/batch-download/abort', { method: 'POST' });
       await fetch('/api/stocks/download/abort', { method: 'POST' });
     } catch {}
   };
@@ -164,7 +171,9 @@ export default function StockLibrary({ onBack }: Props) {
     downloadStatus?.status === 'fetching_tickers' ||
     downloadStatus?.status === 'saving_tickers' ||
     downloadStatus?.status === 'enriching_tickers' ||
-    downloadStatus?.status === 'checking_existing';
+    downloadStatus?.status === 'checking_existing' ||
+    downloadStatus?.status === 'batch_downloading' ||
+    downloadStatus?.status === 'batch_starting';
 
   const downloadPct = downloadStatus && downloadStatus.totalToFetch > 0
     ? Math.round((downloadStatus.currentIndex / downloadStatus.totalToFetch) * 100)
@@ -357,7 +366,9 @@ export default function StockLibrary({ onBack }: Props) {
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-              {downloadStatus?.status === 'updating_recent' ? 'Updating recent data' : 'Downloading missing tickers'} {downloadStatus?.currentTicker || '...'} ({downloadStatus?.currentIndex || 0}/{downloadStatus?.totalToFetch || '?'})
+              {downloadStatus?.status === 'batch_downloading' || downloadStatus?.status === 'batch_starting'
+                ? `Batch downloading ${downloadStatus?.currentTicker || '...'}`
+                : downloadStatus?.status === 'updating_recent' ? 'Updating recent data' : 'Downloading missing tickers'} ({downloadStatus?.currentIndex || 0}/{downloadStatus?.totalToFetch || '?'})
             </span>
             <span className="text-xs text-blue-500">{downloadPct}%</span>
           </div>
@@ -472,15 +483,18 @@ export default function StockLibrary({ onBack }: Props) {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Update All Stocks?</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Downloads missing tickers and updates recent price data for existing ones.
+              Uses yfinance batch download — downloads 50 tickers at a time in parallel.
+              Much faster than the old one-by-one approach.
             </p>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
               <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                Missing tickers get full 10Y history. Existing tickers get data from their last date to today.
+                {stats.stocksWithPrices > 0
+                  ? `Updating ${stats.stocksWithPrices.toLocaleString()} existing tickers with recent data.`
+                  : `Full 10Y history for all ${stats.totalTickers.toLocaleString()} tickers.`}
               </p>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              You can close this page — the update continues in the background.
+              You can close this page — the download continues in the background.
             </p>
             <div className="flex gap-3">
               <button onClick={() => setShowDownloadConfirm(false)} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">

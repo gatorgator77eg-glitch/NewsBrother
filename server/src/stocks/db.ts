@@ -208,19 +208,35 @@ export function getDownloadStatus() {
     }
   }
 
+  // Also read from progress JSON (written by Python batch downloader)
+  let progress: Record<string, any> = {};
+  try {
+    const PROGRESS_FILE = path.join(__dirname, '..', '..', 'data', 'stock-progress.json');
+    if (fs.existsSync(PROGRESS_FILE)) {
+      progress = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf-8'));
+    }
+  } catch {}
+
   const tickerCount = db.exec(`SELECT COUNT(*) FROM stock_tickers`);
   const priceCount = db.exec(`SELECT COUNT(DISTINCT symbol) FROM stock_prices`);
 
+  // Merge: Python progress takes priority for active batch downloads
+  const isBatchActive = progress.phase === 'batch_downloading' || progress.phase === 'enriching';
+
   return {
-    status: meta['status'] || 'idle',
+    status: isBatchActive ? progress.phase : (meta['status'] || 'idle'),
     tickerCount: tickerCount[0]?.values[0]?.[0] as number || 0,
     stocksWithPrices: priceCount[0]?.values[0]?.[0] as number || 0,
-    currentTicker: meta['current_ticker'] || '',
-    currentIndex: parseInt(meta['current_index'] || '0'),
-    totalToFetch: parseInt(meta['total_to_fetch'] || '0'),
+    currentTicker: isBatchActive ? (progress.current || '') : (meta['current_ticker'] || ''),
+    currentIndex: isBatchActive ? (progress.done || 0) : parseInt(meta['current_index'] || '0'),
+    totalToFetch: isBatchActive ? (progress.total || 0) : parseInt(meta['total_to_fetch'] || '0'),
     startedAt: meta['started_at'] || null,
     completedAt: meta['completed_at'] || null,
     error: meta['last_error'] || null,
+    pct: progress.pct || 0,
+    etaMin: progress.etaMin || 0,
+    saved: progress.saved || 0,
+    errors: progress.errors || 0,
   };
 }
 

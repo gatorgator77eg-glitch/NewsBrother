@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { spawn } from 'child_process';
+import path from 'path';
 import {
   getStockDb,
   getTickerList,
@@ -8,10 +10,17 @@ import {
   getExchanges,
   getSectors,
   getStockStats,
+  setMeta,
 } from '../stocks/db';
 import { runFullDownload, runSmartUpdate, isDownloading, abortDownload } from '../stocks/downloader';
 
 export const stocksRoutes = Router();
+
+let batchProcess: ReturnType<typeof spawn> | null = null;
+
+function isBatchRunning() {
+  return batchProcess !== null && !batchProcess.killed;
+}
 
 stocksRoutes.get('/stocks', async (req, res) => {
   try {
@@ -77,12 +86,61 @@ stocksRoutes.post('/stocks/download', async (_req, res) => {
 });
 
 stocksRoutes.post('/stocks/update', async (_req, res) => {
-  if (isDownloading()) {
+  if (isDownloading() || isBatchRunning()) {
     res.status(409).json({ error: 'Download already in progress' });
     return;
   }
   res.json({ message: 'Smart update started' });
   runSmartUpdate().catch(err => console.error('Update failed:', err));
+});
+
+stocksRoutes.post('/stocks/batch-download', async (req, res) => {
+  if (isBatchRunning() || isDownloading()) {
+    res.status(409).json({ error: 'Download already in progress' });
+    return;
+  }
+
+  const mode = (req.body?.mode as string) || 'missing';
+  const tickers = (req.body?.tickers as string) || '';
+
+  const args = [path.join(__dirname, '..', '..', 'src', 'stocks', 'batch_download.py')];
+  if (mode === 'all') args.push('--all');
+  else if (mode === 'update') args.push('--update');
+  else if (tickers) args.push('--tickers', tickers);
+
+  await getStockDb();
+  setMeta('status', 'batch_starting');
+
+  const python = spawn('python', args, {
+    cwd: path.join(__dirname, '..', '..'),
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  batchProcess = python;
+
+  python.stdout?.on('data', (data: Buffer) => {
+    const lines = data.toString().split('\n').filter(l => l.trim());
+    for (const line of lines) console.log(`[batch] ${line}`);
+  });
+  python.stderr?.on('data', (data: Buffer) => {
+    console.error(`[batch-err] ${data.toString().trim()}`);
+  });
+  python.on('close', (code) => {
+    batchProcess = null;
+    console.log(`Batch download finished with code ${code}`);
+  });
+
+  res.json({ message: 'Batch download started', mode });
+});
+
+stocksRoutes.post('/stocks/batch-download/abort', (_req, res) => {
+  if (isBatchRunning() && batchProcess) {
+    batchProcess.kill('SIGTERM');
+    batchProcess = null;
+    setMeta('status', 'paused');
+    res.json({ message: 'Batch download aborted' });
+  } else {
+    res.status(404).json({ error: 'No batch download in progress' });
+  }
 });
 
 stocksRoutes.post('/stocks/download/abort', (_req, res) => {
