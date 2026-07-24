@@ -40,6 +40,7 @@ interface BreakingNews {
 
 interface BriefingData {
   generatedAt: string;
+  archiveDateRange?: { anchor: string } | null;
   topStories: BriefingStory[];
   sentimentShifts: SentimentShift[];
   emergingNarratives: Narrative[];
@@ -64,7 +65,7 @@ export default function DailyBriefing({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     fetch('/api/briefing/daily')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); })
       .then(setData)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -79,7 +80,11 @@ export default function DailyBriefing({ onBack }: { onBack: () => void }) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Daily Briefing</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {data?.generatedAt ? `Generated ${new Date(data.generatedAt).toLocaleString()}` : 'Loading...'}
+            {data?.archiveDateRange?.anchor
+              ? `Archive date: ${data.archiveDateRange.anchor}`
+              : data?.generatedAt
+                ? `Generated ${new Date(data.generatedAt).toLocaleString()}`
+                : 'Loading...'}
           </p>
         </div>
       </div>
