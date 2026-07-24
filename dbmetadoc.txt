@@ -1,0 +1,184 @@
+================================================================================
+                         DATABASE METADATA DOCUMENTATION
+                              Political News App
+================================================================================
+
+Generated: 2026-07-24
+
+================================================================================
+  NEWS ARCHIVE DB (server/data/news.db)
+================================================================================
+
+TABLE: articles
+  RSS feed articles from 52 sources across the political spectrum.
+  - id            INTEGER PRIMARY KEY AUTOINCREMENT
+  - source_id     TEXT NOT NULL (FK → sources.id)
+  - title         TEXT NOT NULL
+  - excerpt       TEXT DEFAULT ''
+  - url           TEXT NOT NULL UNIQUE
+  - published_at  TEXT
+  - cluster_id    INTEGER (FK → clusters.id)
+  - created_at    TEXT DEFAULT (datetime('now'))
+
+TABLE: clusters
+  Topic clusters created by the clustering engine.
+  - id            INTEGER PRIMARY KEY AUTOINCREMENT
+  - topic_label   TEXT NOT NULL
+  - created_at    TEXT DEFAULT (datetime('now'))
+
+TABLE: sources
+  RSS feed definitions. 52 feeds across left/center/right bias.
+  - id                  TEXT PRIMARY KEY
+  - name                TEXT NOT NULL
+  - url                 TEXT NOT NULL
+  - rss_url             TEXT NOT NULL
+  - bias                TEXT NOT NULL (left/center/right)
+  - credibility_score   REAL DEFAULT 0.5
+  - tags                TEXT DEFAULT '[]'
+
+TABLE: news_archive
+  GDELT DOC API downloaded articles. Main source for sentiment analysis.
+  - id              INTEGER PRIMARY KEY AUTOINCREMENT
+  - url             TEXT UNIQUE NOT NULL
+  - title           TEXT DEFAULT ''
+  - domain          TEXT DEFAULT ''
+  - source_country  TEXT DEFAULT ''
+  - language        TEXT DEFAULT ''
+  - published_at    TEXT
+  - image_url       TEXT DEFAULT ''
+  - themes          TEXT DEFAULT '[]'
+  - tone            REAL DEFAULT 0      (GDELT tone: -10 to +10)
+  - goldsteinscale  REAL DEFAULT 0      (GDELT Goldstein scale: -10 to +10)
+  - downloaded_at   TEXT DEFAULT (datetime('now'))
+
+TABLE: news_archive_meta
+  Key-value store for download state tracking.
+  - key    TEXT PRIMARY KEY
+  - value  TEXT
+  Keys: status, start_date, end_date, current_date, total_days,
+        completed_days, total_articles, started_at, completed_at,
+        last_error, downloaded_date:YYYY-MM-DD
+
+INDEXES:
+  - idx_articles_cluster     ON articles(cluster_id)
+  - idx_articles_source      ON articles(source_id)
+  - idx_articles_published   ON articles(published_at)
+  - idx_news_archive_date    ON news_archive(published_at)
+  - idx_news_archive_domain  ON news_archive(domain)
+
+STATS:
+  Total articles:     10,010 (10,000 GDELT + 10 test)
+  With tone data:     10 (test articles only — re-download to fill)
+  Date range:         2026-04-26 to 2026-07-24
+  Top domains:        163.com (110), baomoi.com (53), zazoom.it (51),
+                      finance.sina.com.cn (50), finance.yahoo.com (41)
+  Top countries:      United States (1,828), China (614), United Kingdom (441),
+                      Spain (417), Italy (361), India (337), Germany (336),
+                      Russia (320), Turkey (299), Ukraine (261)
+
+API ENDPOINTS:
+  GET  /api/news-archive              Search articles (query, dateFrom, dateTo, page, limit)
+  GET  /api/news-archive/stats        Aggregate stats (total, domains, countries, volume)
+  GET  /api/news-archive/download/status   Download progress
+  POST /api/news-archive/download     Start GDELT download (startDate, endDate, query)
+  POST /api/news-archive/download/abort    Abort download
+
+  GET  /api/sentiment/timeline        Tone over time (country, domain, granularity)
+  GET  /api/sentiment/world-map       Per-country tone by month
+  GET  /api/sentiment/source-bias     Tone per domain with political lean
+  GET  /api/sentiment/distribution    Tone histogram buckets (-10 to +10)
+  GET  /api/sentiment/mood-pulse      Today/week tone per country with sparklines
+  GET  /api/sentiment/waves           Day x Country tone cascade heatmap
+  GET  /api/sentiment/left-right      Left/Center/Right tone comparison
+
+
+================================================================================
+  STOCKS DB (server/data/stocks.db)
+================================================================================
+
+TABLE: stock_tickers
+  5,082 ticker symbols from S&P 500, NASDAQ-100, FTSE 100, DAX, Nikkei 225, NYSE.
+  - symbol        TEXT PRIMARY KEY
+  - name          TEXT NOT NULL DEFAULT ''
+  - exchange      TEXT DEFAULT ''
+  - sector        TEXT DEFAULT ''
+  - industry      TEXT DEFAULT ''
+  - country       TEXT DEFAULT ''
+  - market_cap    REAL DEFAULT 0
+  - updated_at    TEXT DEFAULT (datetime('now'))
+
+TABLE: stock_prices
+  Daily OHLCV price data. Downloaded via Python yfinance batch script.
+  - symbol    TEXT NOT NULL (FK -> stock_tickers.symbol)
+  - date      TEXT NOT NULL
+  - open      REAL
+  - high      REAL
+  - low       REAL
+  - close     REAL
+  - volume    INTEGER DEFAULT 0
+  PRIMARY KEY (symbol, date)
+
+TABLE: stock_meta
+  Key-value store for batch download state.
+  - key    TEXT PRIMARY KEY
+  - value  TEXT
+
+INDEXES:
+  - idx_stock_prices_symbol  ON stock_prices(symbol)
+  - idx_stock_prices_date    ON stock_prices(date)
+  - idx_stock_tickers_cap    ON stock_tickers(market_cap DESC)
+
+STATS:
+  Total tickers:          5,082
+  Total price rows:       8,272,165
+  Tickers with prices:    3,692
+  Top exchanges:          NYQ (1,507), NMS (667), YHD (349), NCM (201),
+                          NGM (179), JPX (132), SHZ (97), SHH (96), PCX (93)
+
+API ENDPOINTS:
+  GET  /api/stocks              List tickers (search, exchange, sector, page, limit)
+  GET  /api/stocks/stats        DB stats (total, priced, exchanges)
+  GET  /api/stocks/:symbol      Single ticker + price history
+  POST /api/stocks/batch-download    Start Python yfinance download
+
+  GET  /api/market-analytics/movers       Top gainers/losers (1d/1w/1m)
+  GET  /api/market-analytics/volume       Volume spike detection
+  GET  /api/market-analytics/heatmap      Market cap weighted heatmap
+  GET  /api/market-analytics/sectors      Sector rotation analysis
+  GET  /api/market-analytics/seasonality  Monthly seasonal patterns
+  GET  /api/market-analytics/correlation  Cross-asset correlations
+  GET  /api/market-analytics/risk-reward  Risk/reward scatter
+  GET  /api/market-analytics/countries    Country-level breakdown
+
+  GET  /api/news-vs-price/:symbol    News tone + price overlay for a ticker
+
+
+================================================================================
+  OTHER SERVER FILES
+================================================================================
+
+  server/src/index.ts           Express app entry point, route registration, cron jobs
+  server/src/db.ts              Main articles DB (sql.js)
+  server/src/ingestor.ts        RSS feed fetcher (rss-parser), 52 sources
+  server/src/clustering.ts      Article topic clustering
+  server/src/logger.ts          Winston logger with daily rotate
+  server/src/stocks/db.ts       Stock DB (sql.js)
+  server/src/stocks/batch_download.py   Python yfinance batch downloader (50/batch)
+
+ROUTES:
+  /api/search                   Article search
+  /api/topics                   Topic clustering
+  /api/blindspots               Coverage blindspot detection
+  /api/feeds                    RSS feed management
+  /api/breaking                 Breaking news
+  /api/graph                    Knowledge graph
+  /api/google-news              Google News search
+  /api/events                   Event detection
+  /api/stocks                   Stock CRUD
+  /api/market-analytics         10 analytics endpoints
+  /api/news-vs-price            News + price overlay
+  /api/news-archive             GDELT archive + download manager
+  /api/janus                    Predictive intelligence engine (6 endpoints)
+  /api/sentiment                Sentiment analysis (7 endpoints)
+
+================================================================================

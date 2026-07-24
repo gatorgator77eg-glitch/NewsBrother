@@ -21,6 +21,7 @@ import NewsVsPrice from './components/NewsVsPrice';
 import NewsArchive from './components/NewsArchive';
 import Janus from './components/Janus';
 import Sentiment from './components/Sentiment';
+import LocalGPU from './components/LocalGPU';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -59,6 +60,7 @@ export default function App() {
   const [showNewsArchive, setShowNewsArchive] = useState(false);
   const [showJanus, setShowJanus] = useState(false);
   const [showSentiment, setShowSentiment] = useState(false);
+  const [showLocalGpu, setShowLocalGpu] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -156,6 +158,7 @@ export default function App() {
     setShowNewsArchive(false);
     setShowJanus(false);
     setShowSentiment(false);
+    setShowLocalGpu(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -216,6 +219,15 @@ export default function App() {
         hideAll();
         setShowSentiment(true);
         break;
+      case 'gpu-monitor':
+      case 'llm-chat':
+      case 'llm-sentiment':
+      case 'llm-vectors':
+      case 'llm-analytics':
+      case 'llm-settings':
+        hideAll();
+        setShowLocalGpu(true);
+        break;
     }
   };
 
@@ -251,7 +263,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -355,6 +367,8 @@ export default function App() {
           <Janus onBack={() => setShowJanus(false)} />
         ) : showSentiment ? (
           <Sentiment onBack={() => setShowSentiment(false)} />
+        ) : showLocalGpu ? (
+          <LocalGPU onBack={() => setShowLocalGpu(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

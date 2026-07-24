@@ -1,0 +1,16 @@
+# LocalGPU Python Dependencies
+# Install: pip install -r requirements.txt
+
+# Core ML (optional — fallback works without these)
+transformers>=4.30.0
+torch>=2.0.0
+sentence-transformers>=2.2.0
+
+# GPU acceleration (only on GPU machine)
+# cupy-cuda12x>=12.0.0
+
+# Numpy always needed
+numpy>=1.24.0
+
+# Scikit-learn for advanced clustering (optional)
+# scikit-learn>=1.3.0

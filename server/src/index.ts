@@ -18,6 +18,7 @@ import { newsVsPriceRoutes } from './routes/newsVsPrice';
 import { newsArchiveRoutes } from './routes/newsArchive';
 import { janusRoutes } from './routes/janus';
 import { sentimentRoutes } from './routes/sentiment';
+import { localgpuRoutes } from './routes/localgpu';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
 import { clusterArticles } from './clustering';
@@ -54,6 +55,7 @@ app.use('/api', newsVsPriceRoutes);
 app.use('/api/news-archive', newsArchiveRoutes);
 app.use('/api/janus', janusRoutes);
 app.use('/api/sentiment', sentimentRoutes);
+app.use('/api/localgpu', localgpuRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

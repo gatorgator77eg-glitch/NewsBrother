@@ -483,3 +483,140 @@ export async function getSentimentLeftRight(): Promise<{ leftRight: LeftRightEnt
   if (!res.ok) throw new Error('Failed to fetch left-right');
   return res.json();
 }
+
+// ─── LocalGPU Types ─────────────────────────────────────────────────
+
+export interface GpuStatus {
+  available: boolean;
+  ollamaConnected: boolean;
+  models: { name: string; size: number; parameter_size: string; quantization: string }[];
+  activeModel: string | null;
+  vram: { total: number; used: number; free: number };
+  engines: {
+    llm: { status: string; vramMb: number };
+    sentiment: { status: string; vramMb: number };
+    vectors: { status: string; vramMb: number };
+    analytics: { status: string; vramMb: number };
+  };
+  activeJobs: any[];
+}
+
+export interface LocalGpuConfig {
+  [key: string]: string;
+}
+
+export interface TopicCluster {
+  id: number;
+  label: string;
+  articleCount: number;
+  createdAt: string;
+  articles?: { id: number; title: string; domain: string; country: string }[];
+}
+
+export interface AnalyticsResult {
+  symbol: string;
+  window: number;
+  volatility: number;
+  sharpe: number;
+  max_drawdown: number;
+  rsi: number;
+  volume_change_pct: number;
+  last_close: number;
+}
+
+// ─── LocalGPU API ───────────────────────────────────────────────────
+
+export async function getLocalGpuStatus(): Promise<GpuStatus> {
+  const res = await fetch(`${API_BASE}/localgpu/status`);
+  if (!res.ok) throw new Error('Failed to fetch GPU status');
+  return res.json();
+}
+
+export async function localGpuChat(messages: { role: string; content: string }[], model?: string): Promise<{ response: string; model: string }> {
+  const res = await fetch(`${API_BASE}/localgpu/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, model }),
+  });
+  if (!res.ok) throw new Error('Chat failed');
+  return res.json();
+}
+
+export async function runLocalGpuSentiment(batchSize?: number, limit?: number): Promise<{ jobId: string }> {
+  const res = await fetch(`${API_BASE}/localgpu/sentiment/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ batchSize, limit }),
+  });
+  if (!res.ok) throw new Error('Sentiment job failed to start');
+  return res.json();
+}
+
+export async function getLocalGpuSentimentStatus(jobId?: string): Promise<{ jobs?: any[]; id?: string; status?: string; progress?: number; result?: any }> {
+  const q = jobId ? `?jobId=${jobId}` : '';
+  const res = await fetch(`${API_BASE}/localgpu/sentiment/status${q}`);
+  if (!res.ok) throw new Error('Failed to get sentiment status');
+  return res.json();
+}
+
+export async function runLocalGpuVectors(clusters?: number, limit?: number): Promise<{ jobId: string }> {
+  const res = await fetch(`${API_BASE}/localgpu/vectors/embed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clusters, limit }),
+  });
+  if (!res.ok) throw new Error('Vector job failed to start');
+  return res.json();
+}
+
+export async function getLocalGpuClusters(): Promise<{ clusters: TopicCluster[] }> {
+  const res = await fetch(`${API_BASE}/localgpu/vectors/clusters`);
+  if (!res.ok) throw new Error('Failed to fetch clusters');
+  return res.json();
+}
+
+export async function getLocalGpuVectorStatus(jobId?: string): Promise<{ jobs?: any[]; id?: string; status?: string; progress?: number }> {
+  const q = jobId ? `?jobId=${jobId}` : '';
+  const res = await fetch(`${API_BASE}/localgpu/vectors/status${q}`);
+  if (!res.ok) throw new Error('Failed to get vector status');
+  return res.json();
+}
+
+export async function runLocalGpuAnalytics(window?: number, tickers?: string): Promise<{ jobId: string }> {
+  const res = await fetch(`${API_BASE}/localgpu/analytics/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ window, tickers }),
+  });
+  if (!res.ok) throw new Error('Analytics job failed to start');
+  return res.json();
+}
+
+export async function getLocalGpuAnalyticsResults(): Promise<{ results: AnalyticsResult[] }> {
+  const res = await fetch(`${API_BASE}/localgpu/analytics/results`);
+  if (!res.ok) throw new Error('Failed to fetch analytics results');
+  return res.json();
+}
+
+export async function getLocalGpuAnalyticsStatus(jobId?: string): Promise<{ jobs?: any[]; id?: string; status?: string; progress?: number }> {
+  const q = jobId ? `?jobId=${jobId}` : '';
+  const res = await fetch(`${API_BASE}/localgpu/analytics/status${q}`);
+  if (!res.ok) throw new Error('Failed to get analytics status');
+  return res.json();
+}
+
+export async function getLocalGpuConfig(): Promise<{ config: LocalGpuConfig }> {
+  const res = await fetch(`${API_BASE}/localgpu/config`);
+  if (!res.ok) throw new Error('Failed to fetch config');
+  return res.json();
+}
+
+export async function setLocalGpuConfig(updates: Record<string, string>): Promise<{ config: LocalGpuConfig }> {
+  const res = await fetch(`${API_BASE}/localgpu/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) throw new Error('Failed to save config');
+  return res.json();
+}

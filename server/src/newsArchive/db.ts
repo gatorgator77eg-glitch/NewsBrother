@@ -78,6 +78,14 @@ function initArchiveSchema() {
     log.info('Added goldsteinscale column to news_archive');
   }
 
+  // Migration: add sentiment_label if missing
+  try {
+    db.exec(`SELECT sentiment_label FROM news_archive LIMIT 1`);
+  } catch {
+    db.run(`ALTER TABLE news_archive ADD COLUMN sentiment_label TEXT DEFAULT ''`);
+    log.info('Added sentiment_label column to news_archive');
+  }
+
   db.run(`
     CREATE TABLE IF NOT EXISTS news_archive_meta (
       key TEXT PRIMARY KEY,
