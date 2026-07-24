@@ -2,11 +2,13 @@ import { Router, Request, Response } from 'express';
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
+import YahooFinance from 'yahoo-finance2';
 import { createLogger } from '../logger';
 import { scrapeSrsFunds, ScrapedSrsFund } from '../scrapers/srsScraper';
 
 const log = createLogger({ module: 'srs' });
 export const srsRoutes = Router();
+const yf = new YahooFinance({ validation: { logErrors: false }, suppressNotices: ['ripHistorical'] });
 
 // ── SQLite cache ───────────────────────────────────────────────────────────
 const SRS_DB_PATH = path.join(__dirname, '..', '..', 'data', 'srs.db');
@@ -48,6 +50,16 @@ async function getSrsDb(): Promise<SqlJsDatabase> {
       value TEXT
     );
   `);
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_nav_history (
+      isin TEXT NOT NULL,
+      date TEXT NOT NULL,
+      nav REAL NOT NULL,
+      volume INTEGER DEFAULT 0,
+      PRIMARY KEY (isin, date)
+    );
+  `);
+  srsDb.run(`CREATE INDEX IF NOT EXISTS idx_srs_nav_isin ON srs_nav_history(isin)`);
   flushSrsDb();
   return srsDb;
 }
@@ -1135,5 +1147,135 @@ srsRoutes.post('/refresh', async (_req: Request, res: Response) => {
   } catch (err: any) {
     log.error('SRS refresh failed', { error: err.message });
     res.status(500).json({ error: `Refresh failed: ${err.message}` });
+  }
+});
+
+// ── NAV History ────────────────────────────────────────────────────────────
+
+const PERIOD_MAP: Record<string, { period1: Date; label: string }> = {
+  '1m':  { period1: new Date(Date.now() - 30 * 86400000), label: '1 Month' },
+  '3m':  { period1: new Date(Date.now() - 90 * 86400000), label: '3 Months' },
+  '6m':  { period1: new Date(Date.now() - 180 * 86400000), label: '6 Months' },
+  '1y':  { period1: new Date(Date.now() - 365 * 86400000), label: '1 Year' },
+  '3y':  { period1: new Date(Date.now() - 3 * 365 * 86400000), label: '3 Years' },
+  '5y':  { period1: new Date(Date.now() - 5 * 365 * 86400000), label: '5 Years' },
+};
+
+function getCachedNav(isin: string, period: string): { date: string; nav: number }[] | null {
+  if (!srsDb) return null;
+  const p = PERIOD_MAP[period];
+  if (!p) return null;
+  try {
+    const result = srsDb.exec(
+      `SELECT date, nav FROM srs_nav_history WHERE isin = ? AND date >= ? ORDER BY date`,
+      [isin, p.period1.toISOString().slice(0, 10)]
+    );
+    if (!result[0] || result[0].values.length === 0) return null;
+    return result[0].values.map((r: any[]) => ({ date: r[0], nav: r[1] }));
+  } catch {
+    return null;
+  }
+}
+
+function storeNavHistory(isin: string, rows: { date: string; nav: number; volume: number }[]) {
+  if (!srsDb || rows.length === 0) return;
+  const stmt = srsDb.prepare(`INSERT OR REPLACE INTO srs_nav_history (isin, date, nav, volume) VALUES (?, ?, ?, ?)`);
+  for (const r of rows) {
+    stmt.run([isin, r.date, r.nav, r.volume]);
+  }
+  stmt.free();
+  scheduleSrsDbSave();
+}
+
+async function fetchNavFromYahoo(isin: string, period: string): Promise<{ date: string; nav: number }[]> {
+  const p = PERIOD_MAP[period] || PERIOD_MAP['1y'];
+  const ticker = `${isin}.SI`;
+  log.info('Fetching NAV from Yahoo', { ticker, period });
+  try {
+    const result = await yf.chart(ticker, {
+      period1: p.period1,
+      period2: new Date(),
+      interval: '1d',
+    });
+    const quotes = (result as any).quotes || [];
+    const navRows = quotes
+      .filter((q: any) => q.close != null)
+      .map((q: any) => ({
+        date: new Date(q.date).toISOString().slice(0, 10),
+        nav: q.close,
+        volume: q.volume || 0,
+      }));
+    if (navRows.length > 0) {
+      storeNavHistory(isin, navRows);
+    }
+    return navRows.map((r: { date: string; nav: number }) => ({ date: r.date, nav: r.nav }));
+  } catch (err: any) {
+    log.warn('Yahoo Finance fetch failed', { ticker, error: err.message });
+    return [];
+  }
+}
+
+// ── GET /api/srs/nav/:isin — Historical NAV for a fund ────────────────────
+srsRoutes.get('/nav/:isin', async (req: Request, res: Response) => {
+  try {
+    const { isin } = req.params;
+    const period = (req.query.period as string) || '1y';
+    if (!PERIOD_MAP[period]) {
+      res.status(400).json({ error: `Invalid period. Use: ${Object.keys(PERIOD_MAP).join(', ')}` });
+      return;
+    }
+    const cached = getCachedNav(isin, period);
+    if (cached && cached.length > 0) {
+      res.json({ isin, period, source: 'cache', data: cached });
+      return;
+    }
+    const data = await fetchNavFromYahoo(isin, period);
+    if (data.length === 0) {
+      res.json({ isin, period, source: 'yahoo', data: [], message: 'No NAV data available — fund may not be listed on Yahoo Finance' });
+      return;
+    }
+    res.json({ isin, period, source: 'yahoo', data });
+  } catch (err: any) {
+    log.error('Failed to fetch NAV', { error: err.message });
+    res.status(500).json({ error: 'Failed to fetch NAV data' });
+  }
+});
+
+// ── POST /api/srs/nav/refresh — Bulk download NAV for all ISINs ───────────
+let navRefreshRunning = false;
+
+srsRoutes.post('/nav/refresh', async (_req: Request, res: Response) => {
+  if (navRefreshRunning) {
+    res.status(409).json({ error: 'NAV refresh already running' });
+    return;
+  }
+  navRefreshRunning = true;
+  try {
+    const db = await getSrsDb();
+    const result = db.exec(`SELECT DISTINCT isin FROM srs_funds WHERE isin IS NOT NULL AND isin != ''`);
+    const isins = result[0]?.values.map((r: any[]) => r[0] as string) || [];
+    log.info('Starting bulk NAV refresh', { totalIsins: isins.length });
+    res.json({ success: true, message: 'NAV refresh started', totalIsins: isins.length });
+
+    let downloaded = 0;
+    let failed = 0;
+    for (const isin of isins) {
+      try {
+        const data = await fetchNavFromYahoo(isin, '1y');
+        if (data.length > 0) downloaded++;
+        else failed++;
+      } catch {
+        failed++;
+      }
+      await new Promise(r => setTimeout(r, 500));
+    }
+    setSrsMeta(db, 'last_nav_refresh', new Date().toISOString());
+    setSrsMeta(db, 'nav_funds_downloaded', String(downloaded));
+    setSrsMeta(db, 'nav_funds_failed', String(failed));
+    log.info('Bulk NAV refresh complete', { downloaded, failed, total: isins.length });
+  } catch (err: any) {
+    log.error('Bulk NAV refresh failed', { error: err.message });
+  } finally {
+    navRefreshRunning = false;
   }
 });

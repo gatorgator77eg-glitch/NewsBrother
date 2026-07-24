@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 interface SrsProduct {
   id: string;
@@ -73,6 +73,132 @@ const typeColor = (t: string) => {
   }
 };
 
+interface NavDataPoint { date: string; nav: number; }
+
+function NavChart({ isin, fundName }: { isin: string; fundName: string }) {
+  const [data, setData] = useState<NavDataPoint[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [period, setPeriod] = useState('1y');
+  const [source, setSource] = useState('');
+  const [message, setMessage] = useState('');
+
+  const loadNav = useCallback(async (p: string) => {
+    setLoading(true);
+    setMessage('');
+    try {
+      const res = await fetch(`/api/srs/nav/${isin}?period=${p}`);
+      const json = await res.json();
+      setData(json.data || []);
+      setSource(json.source || '');
+      setMessage(json.message || '');
+    } catch {
+      setData([]);
+      setMessage('Failed to fetch NAV data');
+    }
+    setLoading(false);
+  }, [isin]);
+
+  useEffect(() => { loadNav(period); }, [period, loadNav]);
+
+  const chartW = 560;
+  const chartH = 160;
+  const padL = 50;
+  const padR = 10;
+  const padT = 10;
+  const padB = 24;
+
+  const minNav = data.length > 0 ? Math.min(...data.map(d => d.nav)) : 0;
+  const maxNav = data.length > 0 ? Math.max(...data.map(d => d.nav)) : 1;
+  const range = maxNav - minNav || 1;
+
+  const xScale = (i: number) => padL + (data.length > 1 ? (i / (data.length - 1)) * (chartW - padL - padR) : (chartW - padL - padR) / 2);
+  const yScale = (v: number) => padT + (1 - (v - minNav) / range) * (chartH - padT - padB);
+
+  const linePath = data.length > 1
+    ? data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(d.nav).toFixed(1)}`).join(' ')
+    : data.length === 1
+    ? `M${xScale(0).toFixed(1)},${yScale(data[0].nav).toFixed(1)}`
+    : '';
+
+  const areaPath = data.length > 1
+    ? `${linePath} L${xScale(data.length - 1).toFixed(1)},${chartH - padB} L${xScale(0).toFixed(1)},${chartH - padB} Z`
+    : '';
+
+  const isUp = data.length >= 2 && data[data.length - 1].nav >= data[0].nav;
+  const lineColor = isUp ? '#22c55e' : '#ef4444';
+  const gradientId = `navGrad-${isin}`;
+
+  const yTicks = 4;
+  const yTickVals = Array.from({ length: yTicks + 1 }, (_, i) => minNav + (range * i) / yTicks);
+
+  const xLabelCount = Math.min(data.length, 6);
+  const xLabelStep = data.length > 1 ? Math.floor((data.length - 1) / (xLabelCount - 1 || 1)) : 1;
+
+  const periods = ['1m', '3m', '6m', '1y', '3y'];
+
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">NAV History</p>
+        <div className="flex gap-1">
+          {periods.map(p => (
+            <button key={p} onClick={() => setPeriod(p)}
+              className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
+                period === p
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}>{p}</button>
+          ))}
+        </div>
+      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent" />
+        </div>
+      ) : data.length === 0 ? (
+        <div className="py-6 text-center">
+          <p className="text-xs text-gray-400">{message || 'No NAV data available for this fund'}</p>
+          <p className="text-[10px] text-gray-400 mt-1">Fund may not be listed on Yahoo Finance</p>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-baseline gap-3 mb-2">
+            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{data[data.length - 1].nav.toFixed(4)}</span>
+            {data.length >= 2 && (
+              <span className={`text-xs font-medium ${isUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {isUp ? '+' : ''}{((data[data.length - 1].nav - data[0].nav) / data[0].nav * 100).toFixed(2)}%
+              </span>
+            )}
+            <span className="text-[10px] text-gray-400">as of {data[data.length - 1].date}</span>
+          </div>
+          <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-32">
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={lineColor} stopOpacity="0.2" />
+                <stop offset="100%" stopColor={lineColor} stopOpacity="0.02" />
+              </linearGradient>
+            </defs>
+            {yTickVals.map((v, i) => (
+              <g key={i}>
+                <line x1={padL} y1={yScale(v)} x2={chartW - padR} y2={yScale(v)} stroke="currentColor" className="text-gray-100 dark:text-gray-700" strokeWidth="0.5" />
+                <text x={padL - 4} y={yScale(v) + 3} textAnchor="end" className="fill-gray-400 dark:fill-gray-500" fontSize="8">{v.toFixed(2)}</text>
+              </g>
+            ))}
+            {data.map((d, i) => i % xLabelStep === 0 || i === data.length - 1 ? (
+              <text key={i} x={xScale(i)} y={chartH - 6} textAnchor="middle" className="fill-gray-400 dark:fill-gray-500" fontSize="7">
+                {d.date.slice(5)}
+              </text>
+            ) : null)}
+            {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
+            {linePath && <path d={linePath} fill="none" stroke={lineColor} strokeWidth="1.5" strokeLinejoin="round" />}
+          </svg>
+          <p className="text-[10px] text-gray-400 mt-1">Source: Yahoo Finance ({source}) · {fundName}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function SrsProducts({ onBack }: { onBack: () => void }) {
   const [info, setInfo] = useState<SrsInfo | null>(null);
   const [products, setProducts] = useState<SrsProduct[]>([]);
@@ -88,6 +214,7 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
   const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
   const [scrapedFundCount, setScrapedFundCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [navRefreshing, setNavRefreshing] = useState(false);
 
   const loadProducts = () => {
     fetch('/api/srs/products').then(r => r.json()).then((prodData: ProductsResponse) => {
@@ -121,6 +248,14 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
       }
     } catch {}
     setRefreshing(false);
+  };
+
+  const handleNavRefresh = async () => {
+    setNavRefreshing(true);
+    try {
+      await fetch('/api/srs/nav/refresh', { method: 'POST' });
+    } catch {}
+    setNavRefreshing(false);
   };
 
   const filtered = useMemo(() => {
@@ -193,6 +328,18 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={handleNavRefresh}
+            disabled={navRefreshing}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors disabled:opacity-50"
+          >
+            {navRefreshing ? (
+              <span className="flex items-center gap-1.5">
+                <span className="animate-spin h-3 w-3 border-2 border-green-500 border-t-transparent rounded-full" />
+                Downloading NAV...
+              </span>
+            ) : 'Download NAV Data'}
+          </button>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -408,6 +555,7 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
                         </a>
                       )}
                     </div>
+                    {p.isin && <NavChart isin={p.isin} fundName={p.name} />}
                   </div>
                 )}
               </div>
