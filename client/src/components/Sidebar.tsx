@@ -29,6 +29,7 @@ const MENU_GROUPS: (MenuItem | MenuGroup | { divider: string })[] = [
       { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
       { id: 'news-vs-price', label: 'News vs Price', icon: '📈', action: 'news-vs-price' },
       { id: 'news-archive', label: 'News Archive', icon: '🗄️', action: 'news-archive' },
+      { id: 'sentiment', label: 'Sentiment', icon: '🎭', action: 'sentiment' },
     ],
   },
   {

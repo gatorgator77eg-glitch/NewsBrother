@@ -191,5 +191,7 @@ async function fetchGDELTWindow(query: string, start: Date, end: Date) {
     language: a.language || '',
     published_at: parseGDELTDate(a.seendate),
     image_url: a.socialimage || '',
+    tone: parseFloat(a.tone) || 0,
+    goldsteinscale: parseFloat(a.goldsteinscale) || 0,
   })).filter((a: any) => a.url);
 }

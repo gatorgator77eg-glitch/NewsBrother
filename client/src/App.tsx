@@ -20,6 +20,7 @@ import MarketAnalytics from './components/MarketAnalytics';
 import NewsVsPrice from './components/NewsVsPrice';
 import NewsArchive from './components/NewsArchive';
 import Janus from './components/Janus';
+import Sentiment from './components/Sentiment';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -57,6 +58,7 @@ export default function App() {
   const [showNewsVsPrice, setShowNewsVsPrice] = useState(false);
   const [showNewsArchive, setShowNewsArchive] = useState(false);
   const [showJanus, setShowJanus] = useState(false);
+  const [showSentiment, setShowSentiment] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -153,6 +155,7 @@ export default function App() {
     setShowNewsVsPrice(false);
     setShowNewsArchive(false);
     setShowJanus(false);
+    setShowSentiment(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -209,6 +212,10 @@ export default function App() {
         hideAll();
         setShowJanus(true);
         break;
+      case 'sentiment':
+        hideAll();
+        setShowSentiment(true);
+        break;
     }
   };
 
@@ -244,7 +251,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -346,6 +353,8 @@ export default function App() {
           <NewsArchive onBack={() => setShowNewsArchive(false)} />
         ) : showJanus ? (
           <Janus onBack={() => setShowJanus(false)} />
+        ) : showSentiment ? (
+          <Sentiment onBack={() => setShowSentiment(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

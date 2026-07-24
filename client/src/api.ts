@@ -371,3 +371,115 @@ export async function getJanusCredibility(sector?: string, limit = 30): Promise<
   if (!res.ok) throw new Error('Failed to fetch credibility');
   return res.json();
 }
+
+// ─── Sentiment Types ────────────────────────────────────────────────
+
+export interface TimelinePoint {
+  period: string;
+  avgTone: number;
+  articleCount: number;
+  minTone: number;
+  maxTone: number;
+}
+
+export interface WorldMapCountry {
+  country: string;
+  avgTone: number;
+  articleCount: number;
+  positiveCount: number;
+  negativeCount: number;
+}
+
+export interface SourceBias {
+  domain: string;
+  avgTone: number;
+  articleCount: number;
+  minTone: number;
+  maxTone: number;
+  toneVariance: number;
+  lean: 'left' | 'center' | 'right' | 'uncategorized';
+}
+
+export interface DistBucket {
+  bucket: number;
+  count: number;
+  percentage: number;
+}
+
+export interface MoodPulseEntry {
+  country: string;
+  todayTone: number;
+  todayCount: number;
+  weekTone: number;
+  sparkline: number[];
+  trend: 'up' | 'down' | 'flat';
+  totalArticles: number;
+}
+
+export interface WaveDay {
+  date: string;
+  countries: { country: string; tone: number; count: number }[];
+}
+
+export interface LeftRightEntry {
+  category: 'left' | 'center' | 'right';
+  avgTone: number;
+  medianTone: number;
+  totalArticles: number;
+  domainCount: number;
+  topDomains: string[];
+  distribution: { bucket: number; count: number }[];
+}
+
+// ─── Sentiment API ──────────────────────────────────────────────────
+
+export async function getSentimentTimeline(params?: { country?: string; domain?: string; granularity?: string }): Promise<{ timeline: TimelinePoint[]; granularity: string }> {
+  const q = new URLSearchParams();
+  if (params?.country) q.set('country', params.country);
+  if (params?.domain) q.set('domain', params.domain);
+  if (params?.granularity) q.set('granularity', params.granularity);
+  const res = await fetch(`${API_BASE}/sentiment/timeline?${q}`);
+  if (!res.ok) throw new Error('Failed to fetch sentiment timeline');
+  return res.json();
+}
+
+export async function getSentimentWorldMap(month?: string): Promise<{ countries: WorldMapCountry[]; months: string[]; selectedMonth: string | null }> {
+  const q = month ? `?month=${month}` : '';
+  const res = await fetch(`${API_BASE}/sentiment/world-map${q}`);
+  if (!res.ok) throw new Error('Failed to fetch world map');
+  return res.json();
+}
+
+export async function getSentimentSourceBias(): Promise<{ sources: SourceBias[] }> {
+  const res = await fetch(`${API_BASE}/sentiment/source-bias`);
+  if (!res.ok) throw new Error('Failed to fetch source bias');
+  return res.json();
+}
+
+export async function getSentimentDistribution(params?: { country?: string; domain?: string }): Promise<{ buckets: DistBucket[]; avgTone: number; totalArticles: number }> {
+  const q = new URLSearchParams();
+  if (params?.country) q.set('country', params.country);
+  if (params?.domain) q.set('domain', params.domain);
+  const res = await fetch(`${API_BASE}/sentiment/distribution?${q}`);
+  if (!res.ok) throw new Error('Failed to fetch distribution');
+  return res.json();
+}
+
+export async function getSentimentMoodPulse(): Promise<{ pulse: MoodPulseEntry[] }> {
+  const res = await fetch(`${API_BASE}/sentiment/mood-pulse`);
+  if (!res.ok) throw new Error('Failed to fetch mood pulse');
+  return res.json();
+}
+
+export async function getSentimentWaves(days?: number): Promise<{ waves: WaveDay[]; countries: string[] }> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/sentiment/waves${q}`);
+  if (!res.ok) throw new Error('Failed to fetch waves');
+  return res.json();
+}
+
+export async function getSentimentLeftRight(): Promise<{ leftRight: LeftRightEntry[]; uncategorized: { avgTone: number; totalArticles: number; domainCount: number } }> {
+  const res = await fetch(`${API_BASE}/sentiment/left-right`);
+  if (!res.ok) throw new Error('Failed to fetch left-right');
+  return res.json();
+}

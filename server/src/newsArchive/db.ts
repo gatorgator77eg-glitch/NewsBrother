@@ -63,11 +63,20 @@ function initArchiveSchema() {
       image_url TEXT DEFAULT '',
       themes TEXT DEFAULT '[]',
       tone REAL DEFAULT 0,
+      goldsteinscale REAL DEFAULT 0,
       downloaded_at TEXT DEFAULT (datetime('now'))
     );
   `);
   db.run(`CREATE INDEX IF NOT EXISTS idx_news_archive_date ON news_archive(published_at)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_news_archive_domain ON news_archive(domain)`);
+
+  // Migration: add goldsteinscale if missing
+  try {
+    db.exec(`SELECT goldsteinscale FROM news_archive LIMIT 1`);
+  } catch {
+    db.run(`ALTER TABLE news_archive ADD COLUMN goldsteinscale REAL DEFAULT 0`);
+    log.info('Added goldsteinscale column to news_archive');
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS news_archive_meta (
@@ -85,12 +94,14 @@ export function insertArchiveArticle(article: {
   language: string;
   published_at: string;
   image_url: string;
+  tone?: number;
+  goldsteinscale?: number;
 }): { inserted: boolean } {
   try {
     db.run(
-      `INSERT OR IGNORE INTO news_archive (url, title, domain, source_country, language, published_at, image_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [article.url, article.title, article.domain, article.source_country, article.language, article.published_at, article.image_url]
+      `INSERT OR IGNORE INTO news_archive (url, title, domain, source_country, language, published_at, image_url, tone, goldsteinscale)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [article.url, article.title, article.domain, article.source_country, article.language, article.published_at, article.image_url, article.tone || 0, article.goldsteinscale || 0]
     );
     const changes = db.getRowsModified();
     scheduleArchiveDbSave();
@@ -108,14 +119,16 @@ export function insertArchiveArticles(articles: {
   language: string;
   published_at: string;
   image_url: string;
+  tone?: number;
+  goldsteinscale?: number;
 }[]): number {
   let inserted = 0;
   const stmt = db.prepare(
-    `INSERT OR IGNORE INTO news_archive (url, title, domain, source_country, language, published_at, image_url)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO news_archive (url, title, domain, source_country, language, published_at, image_url, tone, goldsteinscale)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   for (const a of articles) {
-    stmt.run([a.url, a.title, a.domain, a.source_country, a.language, a.published_at, a.image_url]);
+    stmt.run([a.url, a.title, a.domain, a.source_country, a.language, a.published_at, a.image_url, a.tone || 0, a.goldsteinscale || 0]);
     if (db.getRowsModified() > 0) inserted++;
   }
   stmt.free();
