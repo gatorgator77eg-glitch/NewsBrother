@@ -1,8 +1,117 @@
 import { Router, Request, Response } from 'express';
+import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
+import fs from 'fs';
+import path from 'path';
 import { createLogger } from '../logger';
+import { scrapeSrsFunds, ScrapedSrsFund } from '../scrapers/srsScraper';
 
 const log = createLogger({ module: 'srs' });
 export const srsRoutes = Router();
+
+// ── SQLite cache ───────────────────────────────────────────────────────────
+const SRS_DB_PATH = path.join(__dirname, '..', '..', 'data', 'srs.db');
+let srsDb: SqlJsDatabase | null = null;
+let srsSaveTimeout: NodeJS.Timeout | null = null;
+let srsDirty = false;
+
+async function getSrsDb(): Promise<SqlJsDatabase> {
+  if (srsDb) return srsDb;
+  const SQL = await initSqlJs();
+  const dir = path.dirname(SRS_DB_PATH);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (fs.existsSync(SRS_DB_PATH)) {
+    const buffer = fs.readFileSync(SRS_DB_PATH);
+    srsDb = new SQL.Database(buffer);
+  } else {
+    srsDb = new SQL.Database();
+  }
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_funds (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fund_house TEXT NOT NULL,
+      fund_name TEXT NOT NULL,
+      fund_type TEXT NOT NULL,
+      factsheet_url TEXT NOT NULL,
+      isin TEXT,
+      category TEXT DEFAULT '',
+      risk_level TEXT DEFAULT 'Medium',
+      min_investment TEXT DEFAULT 'S$1,000',
+      description TEXT DEFAULT '',
+      fees TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(fund_house, fund_name)
+    );
+  `);
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_meta (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    );
+  `);
+  flushSrsDb();
+  return srsDb;
+}
+
+function flushSrsDb() {
+  if (!srsDb) return;
+  const data = srsDb.export();
+  const buffer = Buffer.from(data);
+  fs.writeFileSync(SRS_DB_PATH, buffer);
+}
+
+function scheduleSrsDbSave() {
+  srsDirty = true;
+  if (srsSaveTimeout) return;
+  srsSaveTimeout = setTimeout(() => {
+    if (srsDirty) { flushSrsDb(); srsDirty = false; }
+    srsSaveTimeout = null;
+  }, 2000);
+}
+
+function setSrsMeta(db: SqlJsDatabase, key: string, value: string) {
+  db.run(`INSERT OR REPLACE INTO srs_meta (key, value) VALUES (?, ?)`, [key, value]);
+  scheduleSrsDbSave();
+}
+
+function getSrsMeta(db: SqlJsDatabase, key: string): string | null {
+  const result = db.exec(`SELECT value FROM srs_meta WHERE key = ?`, [key]);
+  return result[0]?.values[0]?.[0] as string ?? null;
+}
+
+async function upsertScrapedFunds(funds: ScrapedSrsFund[]): Promise<number> {
+  const db = await getSrsDb();
+  let count = 0;
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO srs_funds (fund_house, fund_name, fund_type, factsheet_url, isin, created_at)
+    VALUES (?, ?, ?, ?, ?, datetime('now'))
+  `);
+  for (const f of funds) {
+    stmt.run([f.fundHouse, f.fundName, f.fundType, f.factsheetUrl, f.isin || '']);
+    if (db.getRowsModified() > 0) count++;
+  }
+  stmt.free();
+  setSrsMeta(db, 'last_refreshed', new Date().toISOString());
+  setSrsMeta(db, 'fund_count', String(funds.length));
+  scheduleSrsDbSave();
+  return count;
+}
+
+function getScrapedFundsFromCache(): ScrapedSrsFund[] | null {
+  if (!srsDb) return null;
+  try {
+    const result = srsDb.exec(`SELECT fund_house, fund_name, fund_type, factsheet_url, isin FROM srs_funds ORDER BY fund_house, fund_name`);
+    if (!result[0] || result[0].values.length === 0) return null;
+    return result[0].values.map((r: any[]) => ({
+      fundHouse: r[0],
+      fundName: r[1],
+      fundType: r[2],
+      factsheetUrl: r[3],
+      isin: r[4] || null,
+    }));
+  } catch {
+    return null;
+  }
+}
 
 interface SrsProduct {
   id: string;
@@ -16,6 +125,7 @@ interface SrsProduct {
   description: string;
   fees: string;
   dividendPolicy?: string;
+  factsheetUrl?: string;
 }
 
 interface SrsCategory {
@@ -890,13 +1000,13 @@ const ADDITIONAL_PRODUCTS = [
 ];
 
 function getFundHouses(): string[] {
-  const houses = new Set(SRS_PRODUCTS.map(p => p.fundHouse));
-  return Array.from(houses).sort();
+  const { products } = getAllProducts();
+  return Array.from(new Set(products.map(p => p.fundHouse))).sort();
 }
 
 function getCategories(): string[] {
-  const cats = new Set(SRS_PRODUCTS.map(p => p.category));
-  return Array.from(cats).sort();
+  const { products } = getAllProducts();
+  return Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort();
 }
 
 // ── GET /api/srs/info — SRS scheme overview ──────────────────────────────
@@ -914,12 +1024,50 @@ srsRoutes.get('/info', (_req: Request, res: Response) => {
   }
 });
 
+// ── Merge scraped data with hardcoded metadata ────────────────────────────
+function mergeScrapedWithMetadata(scraped: ScrapedSrsFund[]): SrsProduct[] {
+  const hardcodedMap = new Map(SRS_PRODUCTS.map(p => [`${p.fundHouse}|${p.name}`, p]));
+  return scraped.map(f => {
+    const key = `${f.fundHouse}|${f.fundName}`;
+    const meta = hardcodedMap.get(key);
+    return {
+      id: meta?.id || f.fundName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      name: f.fundName,
+      fundHouse: f.fundHouse,
+      fundType: (['Equity', 'Bond', 'Multi Asset'].includes(f.fundType) ? f.fundType : 'Equity') as SrsProduct['fundType'],
+      category: meta?.category || '',
+      isin: f.isin || meta?.isin,
+      riskLevel: meta?.riskLevel || 'Medium',
+      minInvestment: meta?.minInvestment || 'S$1,000',
+      description: meta?.description || '',
+      fees: meta?.fees || '',
+      factsheetUrl: f.factsheetUrl,
+    };
+  });
+}
+
+function getAllProducts(): { products: SrsProduct[]; fromCache: boolean } {
+  const cached = getScrapedFundsFromCache();
+  if (cached) {
+    return { products: mergeScrapedWithMetadata(cached), fromCache: true };
+  }
+  return { products: [...SRS_PRODUCTS], fromCache: false };
+}
+
+function getAllFundHouses(products: SrsProduct[]): string[] {
+  return Array.from(new Set(products.map(p => p.fundHouse))).sort();
+}
+
+function getAllCategories(products: SrsProduct[]): string[] {
+  return Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort();
+}
+
 // ── GET /api/srs/products — Product catalog with filters ─────────────────
 srsRoutes.get('/products', (req: Request, res: Response) => {
   try {
     const { q, fundHouse, type, category, riskLevel } = req.query;
-
-    let filtered = [...SRS_PRODUCTS];
+    const { products: allProducts, fromCache } = getAllProducts();
+    let filtered = [...allProducts];
 
     if (q && typeof q === 'string') {
       const lower = q.toLowerCase();
@@ -947,14 +1095,45 @@ srsRoutes.get('/products', (req: Request, res: Response) => {
       filtered = filtered.filter(p => p.riskLevel === riskLevel);
     }
 
+    const db = srsDb;
+    const lastRefreshed = db ? getSrsMeta(db, 'last_refreshed') : null;
+    const fundCount = db ? getSrsMeta(db, 'fund_count') : null;
+
     res.json({
       total: filtered.length,
       products: filtered,
-      fundHouses: getFundHouses(),
-      categories: getCategories(),
+      fundHouses: getAllFundHouses(allProducts),
+      categories: getAllCategories(allProducts),
+      source: fromCache ? 'scraped' : 'hardcoded',
+      lastRefreshed: lastRefreshed || null,
+      scrapedFundCount: fundCount ? parseInt(fundCount) : 0,
     });
   } catch (err: any) {
     log.error('Failed to fetch SRS products', { error: err.message });
     res.status(500).json({ error: 'Failed to fetch SRS products' });
+  }
+});
+
+// ── POST /api/srs/refresh — Scrape DBS SRS page and update cache ─────────
+srsRoutes.post('/refresh', async (_req: Request, res: Response) => {
+  try {
+    const funds = await scrapeSrsFunds();
+    if (funds.length === 0) {
+      res.status(502).json({ error: 'Scraper returned zero funds — page structure may have changed' });
+      return;
+    }
+    const upserted = await upsertScrapedFunds(funds);
+    const db = await getSrsDb();
+    const lastRefreshed = getSrsMeta(db, 'last_refreshed');
+    log.info('SRS refresh complete', { fundsFound: funds.length, upserted, lastRefreshed });
+    res.json({
+      success: true,
+      fundsFound: funds.length,
+      upserted,
+      lastRefreshed,
+    });
+  } catch (err: any) {
+    log.error('SRS refresh failed', { error: err.message });
+    res.status(500).json({ error: `Refresh failed: ${err.message}` });
   }
 });

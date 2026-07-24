@@ -11,6 +11,7 @@ interface SrsProduct {
   minInvestment: string;
   description: string;
   fees: string;
+  factsheetUrl?: string;
 }
 
 interface AdditionalProduct {
@@ -48,6 +49,9 @@ interface ProductsResponse {
   products: SrsProduct[];
   fundHouses: string[];
   categories: string[];
+  source: 'scraped' | 'hardcoded';
+  lastRefreshed: string | null;
+  scrapedFundCount: number;
 }
 
 const riskColor = (r: string) => {
@@ -80,6 +84,19 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
   const [filterRisk, setFilterRisk] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'additional'>('overview');
+  const [dataSource, setDataSource] = useState<'scraped' | 'hardcoded'>('hardcoded');
+  const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
+  const [scrapedFundCount, setScrapedFundCount] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadProducts = () => {
+    fetch('/api/srs/products').then(r => r.json()).then((prodData: ProductsResponse) => {
+      setProducts(prodData.products);
+      setDataSource(prodData.source);
+      setLastRefreshed(prodData.lastRefreshed);
+      setScrapedFundCount(prodData.scrapedFundCount);
+    }).catch(() => {});
+  };
 
   useEffect(() => {
     Promise.all([
@@ -88,9 +105,23 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
     ]).then(([infoData, prodData]) => {
       setInfo(infoData);
       setProducts(prodData.products);
+      setDataSource(prodData.source);
+      setLastRefreshed(prodData.lastRefreshed);
+      setScrapedFundCount(prodData.scrapedFundCount);
     }).catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch('/api/srs/refresh', { method: 'POST' });
+      if (res.ok) {
+        loadProducts();
+      }
+    } catch {}
+    setRefreshing(false);
+  };
 
   const filtered = useMemo(() => {
     let result = [...products];
@@ -147,7 +178,33 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">SRS Investment Products</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">DBS Supplementary Retirement Scheme — Product Catalog</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            DBS Supplementary Retirement Scheme — Product Catalog
+            {dataSource === 'scraped' && scrapedFundCount > 0 && (
+              <span className="ml-2 text-green-600 dark:text-green-400">
+                ({scrapedFundCount} funds from DBS)
+              </span>
+            )}
+            {lastRefreshed && (
+              <span className="ml-2 text-gray-400 dark:text-gray-500">
+                Updated {new Date(lastRefreshed).toLocaleString()}
+              </span>
+            )}
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
+          >
+            {refreshing ? (
+              <span className="flex items-center gap-1.5">
+                <span className="animate-spin h-3 w-3 border-2 border-blue-500 border-t-transparent rounded-full" />
+                Scraping...
+              </span>
+            ) : 'Refresh from DBS'}
+          </button>
         </div>
       </div>
 
@@ -344,6 +401,12 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
                     <div className="flex flex-wrap gap-4 text-xs">
                       <div><span className="text-gray-500">Min Investment:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{p.minInvestment}</span></div>
                       <div><span className="text-gray-500">Fees:</span> <span className="font-medium text-gray-900 dark:text-gray-100">{p.fees}</span></div>
+                      {p.factsheetUrl && (
+                        <a href={p.factsheetUrl} target="_blank" rel="noopener noreferrer"
+                          className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                          View Factsheet
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}
