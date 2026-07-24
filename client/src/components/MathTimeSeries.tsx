@@ -55,7 +55,9 @@ export default function MathTimeSeries({ onBack }: { onBack: () => void }) {
 }
 
 function ACFViz({ data }: { data: any }) {
-  const { acf, significantThreshold } = data;
+  const acf = data?.acf || [];
+  const significantThreshold = data?.significantThreshold ?? 0;
+  if (acf.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No ACF data available</div>;
   const w = 800, h = 350, pad = 60;
   const vals = acf.map((a: any) => a.acf);
   const maxAbs = Math.max(Math.abs(Math.min(...vals)), Math.abs(Math.max(...vals)), 0.1);
@@ -80,7 +82,9 @@ function ACFViz({ data }: { data: any }) {
 }
 
 function HurstViz({ data }: { data: any }) {
-  const { hurst, classification, rsValues } = data;
+  const hurst = data?.hurst ?? 0.5;
+  const classification = data?.classification ?? 'Unknown';
+  const rsValues = data?.rsValues || [];
   const w = 800, h = 300, pad = 60;
   const hurstColor = hurst > 0.6 ? '#22C55E' : hurst < 0.4 ? '#EF4444' : '#EAB308';
   return (
@@ -114,7 +118,11 @@ function HurstViz({ data }: { data: any }) {
 }
 
 function StationViz({ data }: { data: any }) {
-  const { adfStat, criticalValues, isStationary, conclusion, stats } = data;
+  const adfStat = data?.adfStat ?? 0;
+  const criticalValues = data?.criticalValues || {};
+  const isStationary = data?.isStationary ?? false;
+  const conclusion = data?.conclusion ?? 'Unknown';
+  const stats = data?.stats || {};
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Augmented Dickey-Fuller Test — {data.symbol}</h3>
@@ -141,9 +149,16 @@ function StationViz({ data }: { data: any }) {
 }
 
 function EntropyViz({ data }: { data: any }) {
-  const { totalEntropy, maxEntropy, normalizedEntropy, currentEntropy, avgEntropy, classification, rollingEntropy } = data;
+  const rollingEntropy = data?.rollingEntropy || [];
+  const totalEntropy = data?.totalEntropy ?? 0;
+  const maxEntropy = data?.maxEntropy ?? 0;
+  const normalizedEntropy = data?.normalizedEntropy ?? 0;
+  const currentEntropy = data?.currentEntropy ?? 0;
+  const avgEntropy = data?.avgEntropy ?? 0;
+  const classification = data?.classification ?? 'Unknown';
   const w = 800, h = 250, pad = 60;
-  const vals = rollingEntropy.map((e: any) => e.entropy);
+  const vals = rollingEntropy.map((e: any) => e.entropy ?? 0);
+  if (vals.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No entropy data available</div>;
   const minV = Math.min(...vals), maxV = Math.max(...vals);
   const sx = (i: number) => pad + (i / Math.max(vals.length - 1, 1)) * (w - 2 * pad);
   const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
