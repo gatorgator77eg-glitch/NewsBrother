@@ -123,6 +123,14 @@ const MENU: MenuEntry[] = [
       { id: 'math-advanced', label: 'Advanced', icon: '🧬', action: 'math-advanced' },
     ],
   },
+  {
+    id: 'srs', label: 'SRS', icon: '🏦',
+    children: [
+      { id: 'srs-overview', label: 'Overview', icon: '📋', action: 'srs' },
+      { id: 'srs-products', label: 'Fund Catalog', icon: '💰', action: 'srs' },
+      { id: 'srs-additional', label: 'Other Products', icon: '🔗', action: 'srs' },
+    ],
+  },
   { divider: 'd1' },
   { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
 ];

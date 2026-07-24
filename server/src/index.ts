@@ -37,6 +37,7 @@ import { mathDistributionRoutes } from './routes/mathDistribution';
 import { mathVolatilityRoutes } from './routes/mathVolatility';
 import { mathTimeSeriesRoutes } from './routes/mathTimeSeries';
 import { mathAdvancedRoutes } from './routes/mathAdvanced';
+import { srsRoutes } from './routes/srs';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -93,6 +94,7 @@ app.use('/api/math/distribution', mathDistributionRoutes);
 app.use('/api/math/volatility', mathVolatilityRoutes);
 app.use('/api/math/time-series', mathTimeSeriesRoutes);
 app.use('/api/math/advanced', mathAdvancedRoutes);
+app.use('/api/srs', srsRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {
