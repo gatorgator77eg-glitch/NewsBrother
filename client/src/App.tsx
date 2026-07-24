@@ -40,6 +40,7 @@ import MathTimeSeries from './components/MathTimeSeries';
 import MathAdvanced from './components/MathAdvanced';
 import SrsProducts from './components/SrsProducts';
 import SrsDashboard from './components/SrsDashboard';
+import SrsAdvisor from './components/SrsAdvisor';
 import HealthIndicator from './components/HealthIndicator';
 import TickerSearch from './components/TickerSearch';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
@@ -99,6 +100,7 @@ export default function App() {
   const [showMathAdvanced, setShowMathAdvanced] = useState(false);
   const [showSrs, setShowSrs] = useState(false);
   const [showSrsDashboard, setShowSrsDashboard] = useState(false);
+  const [showSrsAdvisor, setShowSrsAdvisor] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -216,6 +218,7 @@ export default function App() {
     setShowMathAdvanced(false);
     setShowSrs(false);
     setShowSrsDashboard(false);
+    setShowSrsAdvisor(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -358,6 +361,10 @@ export default function App() {
         hideAll();
         setShowSrsDashboard(true);
         break;
+      case 'srs-advisor':
+        hideAll();
+        setShowSrsAdvisor(true);
+        break;
     }
   };
 
@@ -393,7 +400,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -542,6 +549,8 @@ export default function App() {
           <SrsProducts onBack={() => setShowSrs(false)} />
         ) : showSrsDashboard ? (
           <SrsDashboard onBack={() => setShowSrsDashboard(false)} />
+        ) : showSrsAdvisor ? (
+          <SrsAdvisor onBack={() => setShowSrsAdvisor(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

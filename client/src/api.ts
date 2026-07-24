@@ -1102,3 +1102,9 @@ export async function refreshSrsMacro(): Promise<any> {
   if (!res.ok) throw new Error('Failed to refresh macro data');
   return res.json();
 }
+
+export async function getSrsAdvisor(): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/advisor`);
+  if (!res.ok) throw new Error('Failed to fetch advisor recommendations');
+  return res.json();
+}

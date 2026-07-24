@@ -130,6 +130,7 @@ const MENU: MenuEntry[] = [
       { id: 'srs-products', label: 'Fund Catalog', icon: '💰', action: 'srs' },
       { id: 'srs-additional', label: 'Other Products', icon: '🔗', action: 'srs' },
       { id: 'srs-dashboard', label: 'Dashboard', icon: '📊', action: 'srs-dashboard' },
+      { id: 'srs-advisor', label: 'Advisor', icon: '🤖', action: 'srs-advisor' },
       { id: 'srs-signals', label: 'Signals', icon: '⚡', action: 'srs-signals' },
     ],
   },
