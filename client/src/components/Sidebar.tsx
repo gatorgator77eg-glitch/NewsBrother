@@ -129,6 +129,8 @@ const MENU: MenuEntry[] = [
       { id: 'srs-overview', label: 'Overview', icon: '📋', action: 'srs' },
       { id: 'srs-products', label: 'Fund Catalog', icon: '💰', action: 'srs' },
       { id: 'srs-additional', label: 'Other Products', icon: '🔗', action: 'srs' },
+      { id: 'srs-dashboard', label: 'Dashboard', icon: '📊', action: 'srs-dashboard' },
+      { id: 'srs-signals', label: 'Signals', icon: '⚡', action: 'srs-signals' },
     ],
   },
   { divider: 'd1' },

@@ -16,7 +16,7 @@ let srsDb: SqlJsDatabase | null = null;
 let srsSaveTimeout: NodeJS.Timeout | null = null;
 let srsDirty = false;
 
-async function getSrsDb(): Promise<SqlJsDatabase> {
+export async function getSrsDb(): Promise<SqlJsDatabase> {
   if (srsDb) return srsDb;
   const SQL = await initSqlJs();
   const dir = path.dirname(SRS_DB_PATH);
@@ -60,6 +60,76 @@ async function getSrsDb(): Promise<SqlJsDatabase> {
     );
   `);
   srsDb.run(`CREATE INDEX IF NOT EXISTS idx_srs_nav_isin ON srs_nav_history(isin)`);
+  // Portfolio tables
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_portfolio (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      cash_balance REAL DEFAULT 0,
+      total_deposited REAL DEFAULT 0,
+      currency TEXT DEFAULT 'SGD',
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_holdings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_type TEXT NOT NULL,
+      product_id TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      quantity REAL DEFAULT 0,
+      average_cost REAL DEFAULT 0,
+      current_price REAL DEFAULT 0,
+      purchase_date TEXT,
+      last_updated TEXT DEFAULT (datetime('now')),
+      UNIQUE(product_type, product_id)
+    );
+  `);
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL,
+      product_type TEXT NOT NULL,
+      product_id TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      price REAL,
+      units REAL,
+      fees REAL DEFAULT 0,
+      note TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_macro (
+      key TEXT NOT NULL,
+      date TEXT NOT NULL,
+      value REAL NOT NULL,
+      source TEXT DEFAULT '',
+      PRIMARY KEY (key, date)
+    );
+  `);
+  srsDb.run(`CREATE INDEX IF NOT EXISTS idx_srs_macro_key ON srs_macro(key)`);
+  srsDb.run(`
+    CREATE TABLE IF NOT EXISTS srs_signals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      signal_type TEXT NOT NULL,
+      product_type TEXT DEFAULT '',
+      product_id TEXT DEFAULT '',
+      product_name TEXT DEFAULT '',
+      rationale TEXT DEFAULT '',
+      strength REAL DEFAULT 0,
+      target_amount REAL DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      created_at TEXT DEFAULT (datetime('now')),
+      resolved_at TEXT
+    );
+  `);
+  srsDb.run(`CREATE INDEX IF NOT EXISTS idx_srs_signals_status ON srs_signals(status)`);
+  // Seed portfolio if empty
+  const hasPortfolio = srsDb.exec(`SELECT COUNT(*) FROM srs_portfolio`);
+  if (hasPortfolio[0]?.values[0]?.[0] === 0) {
+    srsDb.run(`INSERT INTO srs_portfolio (id, cash_balance, total_deposited) VALUES (1, 0, 0)`);
+  }
   flushSrsDb();
   return srsDb;
 }

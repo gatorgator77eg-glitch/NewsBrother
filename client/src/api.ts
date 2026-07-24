@@ -1028,3 +1028,77 @@ export async function searchTickers(q: string): Promise<any[]> {
   const data = await res.json();
   return data.results || [];
 }
+
+// ── SRS Portfolio & Signals ───────────────────────────────────────────────
+
+export async function getSrsPortfolio(): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/portfolio`);
+  if (!res.ok) throw new Error('Failed to fetch SRS portfolio');
+  return res.json();
+}
+
+export async function updateSrsCash(balance: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/portfolio/cash`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ balance }),
+  });
+  if (!res.ok) throw new Error('Failed to update cash balance');
+  return res.json();
+}
+
+export async function buySrsHolding(productId: string, productName: string, quantity: number, price: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/portfolio/holdings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ productId, productName, quantity, price }),
+  });
+  if (!res.ok) throw new Error('Failed to buy holding');
+  return res.json();
+}
+
+export async function sellSrsHolding(holdingId: number, quantity: number, price: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/portfolio/holdings`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ holdingId, quantity, price }),
+  });
+  if (!res.ok) throw new Error('Failed to sell holding');
+  return res.json();
+}
+
+export async function getSrsTransactions(limit = 50): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/portfolio/transactions?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch transactions');
+  return res.json();
+}
+
+export async function getSrsSignals(): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/signals`);
+  if (!res.ok) throw new Error('Failed to fetch signals');
+  return res.json();
+}
+
+export async function refreshSrsSignals(): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/signals/refresh`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to refresh signals');
+  return res.json();
+}
+
+export async function getSrsSignalHistory(limit = 50): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/signals/history?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch signal history');
+  return res.json();
+}
+
+export async function getSrsMacro(): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/macro`);
+  if (!res.ok) throw new Error('Failed to fetch macro rates');
+  return res.json();
+}
+
+export async function refreshSrsMacro(): Promise<any> {
+  const res = await fetch(`${API_BASE}/srs/macro/refresh`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to refresh macro data');
+  return res.json();
+}
