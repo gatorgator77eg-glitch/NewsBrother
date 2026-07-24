@@ -7,9 +7,10 @@ import { createLogger } from './logger';
 const log = createLogger({ module: 'ingestor' });
 
 const parser = new Parser({
-  timeout: 10000,
+  timeout: 15000,
   headers: {
-    'User-Agent': 'PoliticalNewsBot/1.0',
+    'User-Agent': 'Mozilla/5.0 (compatible; PoliticalNewsBot/1.0)',
+    'Accept': 'application/rss+xml, application/xml, text/xml, */*',
   },
 });
 
@@ -53,30 +54,70 @@ async function loadFeeds(): Promise<FeedItem[]> {
   }));
 }
 
+async function fetchRawFeed(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; PoliticalNewsBot/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+      },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    const body = await res.text();
+    if (contentType.includes('text/html') && !body.includes('<rss') && !body.includes('<feed')) {
+      return null;
+    }
+    const trimmed = body.trim();
+    if (!trimmed.startsWith('<rss') && !trimmed.startsWith('<feed') && !trimmed.startsWith('<?xml')) {
+      return null;
+    }
+    return body;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchFeed(feed: FeedItem) {
   try {
-    const parsed = await parser.parseURL(feed.rssUrl);
+    const rawXml = await fetchRawFeed(feed.rssUrl);
+    if (!rawXml) {
+      log.warn(`Feed returned non-RSS content`, { feed: feed.name, url: feed.rssUrl });
+      return 0;
+    }
+    const parsed = await parser.parseString(rawXml);
     const items = parsed.items || [];
     let newCount = 0;
 
     for (const item of items.slice(0, 20)) {
-      if (!item.title || !item.link) continue;
+      try {
+        const title = item.title?.trim();
+        const link = item.link;
+        if (!title || !link) continue;
 
-      const result = insertArticle({
-        source_id: feed.id,
-        title: item.title.trim(),
-        excerpt: item.contentSnippet?.slice(0, 300) || item.content?.slice(0, 300) || '',
-        url: item.link,
-        published_at: item.pubDate || item.isoDate || new Date().toISOString(),
-      });
+        const result = insertArticle({
+          source_id: feed.id,
+          title,
+          excerpt: (item.contentSnippet || item.content || '').slice(0, 300),
+          url: link,
+          published_at: item.pubDate || item.isoDate || new Date().toISOString(),
+        });
 
-      if (result.changes > 0) newCount++;
+        if (result.changes > 0) newCount++;
+      } catch {
+        // skip individual bad items
+      }
     }
 
     log.info(`Feed fetched`, { feed: feed.name, items: items.length, newArticles: newCount });
     return newCount;
   } catch (err: any) {
-    log.warn(`Feed failed`, { feed: feed.name, error: err.message });
+    log.warn(`Feed failed`, { feed: feed.name, error: err.message?.slice(0, 100) });
     return 0;
   }
 }
