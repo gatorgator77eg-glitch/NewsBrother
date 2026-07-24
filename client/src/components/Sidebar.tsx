@@ -102,6 +102,15 @@ const MENU: MenuEntry[] = [
       },
     ],
   },
+  {
+    id: 'smart', label: 'Smart', icon: '🧠',
+    children: [
+      { id: 'smart-velocity', label: 'Velocity Scanner', icon: '🚀', action: 'smart-velocity' },
+      { id: 'smart-impact', label: 'Price Impact', icon: '💥', action: 'smart-impact' },
+      { id: 'smart-leadlag', label: 'Lead-Lag Analysis', icon: '🔗', action: 'smart-leadlag' },
+      { id: 'smart-heatmap', label: 'Heatmap', icon: '🗺️', action: 'smart-heatmap' },
+    ],
+  },
   { id: 'alerts', label: 'Alerts', icon: '🔔', action: 'alerts' },
   { divider: 'd1' },
   { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },

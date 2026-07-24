@@ -27,6 +27,10 @@ import { timelineRoutes } from './routes/timeline';
 import { biasCompareRoutes } from './routes/biasCompare';
 import { alertsRoutes } from './routes/alerts';
 import { llmConfigRoutes } from './routes/llmConfig';
+import { smartVelocityRoutes } from './routes/smartVelocity';
+import { smartImpactRoutes } from './routes/smartImpact';
+import { smartLeadLagRoutes } from './routes/smartLeadLag';
+import { smartHeatmapRoutes } from './routes/smartHeatmap';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -73,6 +77,10 @@ app.use('/api/timeline', timelineRoutes);
 app.use('/api/bias', biasCompareRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/llm-config', llmConfigRoutes);
+app.use('/api/smart/velocity', smartVelocityRoutes);
+app.use('/api/smart/impact', smartImpactRoutes);
+app.use('/api/smart/lead-lag', smartLeadLagRoutes);
+app.use('/api/smart/heatmap', smartHeatmapRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {

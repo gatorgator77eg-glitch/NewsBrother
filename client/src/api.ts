@@ -836,3 +836,30 @@ export async function scanAlerts(): Promise<{
   if (!res.ok) throw new Error('Failed to scan alerts');
   return res.json();
 }
+
+// ─── Smart API ───────────────────────────────────────────────────────
+
+export async function getSmartVelocity(symbol: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/smart/velocity/${symbol}`);
+  if (!res.ok) throw new Error('Failed to fetch velocity');
+  return res.json();
+}
+
+export async function getSmartImpact(symbol: string, days?: number): Promise<any> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/smart/impact/${symbol}${q}`);
+  if (!res.ok) throw new Error('Failed to fetch impact');
+  return res.json();
+}
+
+export async function getSmartLeadLag(symbol: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/smart/lead-lag/${symbol}`);
+  if (!res.ok) throw new Error('Failed to fetch lead-lag');
+  return res.json();
+}
+
+export async function getSmartHeatmap(): Promise<any> {
+  const res = await fetch(`${API_BASE}/smart/heatmap`);
+  if (!res.ok) throw new Error('Failed to fetch heatmap');
+  return res.json();
+}

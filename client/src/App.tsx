@@ -28,6 +28,10 @@ import Watchlist from './components/Watchlist';
 import Alerts from './components/Alerts';
 import TimelineExplorer from './components/TimelineExplorer';
 import BiasComparator from './components/BiasComparator';
+import SmartVelocityScanner from './components/SmartVelocityScanner';
+import SmartPriceImpact from './components/SmartPriceImpact';
+import SmartLeadLag from './components/SmartLeadLag';
+import SmartHeatmap from './components/SmartHeatmap';
 import HealthIndicator from './components/HealthIndicator';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
@@ -74,6 +78,10 @@ export default function App() {
   const [showAlerts, setShowAlerts] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showBiasCompare, setShowBiasCompare] = useState(false);
+  const [showSmartVelocity, setShowSmartVelocity] = useState(false);
+  const [showSmartImpact, setShowSmartImpact] = useState(false);
+  const [showSmartLeadLag, setShowSmartLeadLag] = useState(false);
+  const [showSmartHeatmap, setShowSmartHeatmap] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -179,6 +187,10 @@ export default function App() {
     setShowAlerts(false);
     setShowTimeline(false);
     setShowBiasCompare(false);
+    setShowSmartVelocity(false);
+    setShowSmartImpact(false);
+    setShowSmartLeadLag(false);
+    setShowSmartHeatmap(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -272,6 +284,22 @@ export default function App() {
         hideAll();
         setShowBiasCompare(true);
         break;
+      case 'smart-velocity':
+        hideAll();
+        setShowSmartVelocity(true);
+        break;
+      case 'smart-impact':
+        hideAll();
+        setShowSmartImpact(true);
+        break;
+      case 'smart-leadlag':
+        hideAll();
+        setShowSmartLeadLag(true);
+        break;
+      case 'smart-heatmap':
+        hideAll();
+        setShowSmartHeatmap(true);
+        break;
     }
   };
 
@@ -307,7 +335,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -431,6 +459,14 @@ export default function App() {
           <TimelineExplorer onBack={() => setShowTimeline(false)} />
         ) : showBiasCompare ? (
           <BiasComparator onBack={() => setShowBiasCompare(false)} />
+        ) : showSmartVelocity ? (
+          <SmartVelocityScanner onBack={() => setShowSmartVelocity(false)} />
+        ) : showSmartImpact ? (
+          <SmartPriceImpact onBack={() => setShowSmartImpact(false)} />
+        ) : showSmartLeadLag ? (
+          <SmartLeadLag onBack={() => setShowSmartLeadLag(false)} />
+        ) : showSmartHeatmap ? (
+          <SmartHeatmap onBack={() => setShowSmartHeatmap(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}
