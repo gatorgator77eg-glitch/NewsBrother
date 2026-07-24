@@ -2,6 +2,9 @@ import Parser from 'rss-parser';
 import { getDb, insertArticle, insertSource } from './db';
 import { resultToObjects } from './utils';
 import feedsData from './feeds.json';
+import { createLogger } from './logger';
+
+const log = createLogger({ module: 'ingestor' });
 
 const parser = new Parser({
   timeout: 10000,
@@ -39,7 +42,15 @@ async function loadFeeds(): Promise<FeedItem[]> {
     }
     return feedsData;
   }
-  return sources;
+  return sources.map((s: any) => ({
+    id: s.id,
+    name: s.name,
+    url: s.url,
+    rssUrl: s.rss_url || s.rssUrl,
+    bias: s.bias,
+    credibilityScore: s.credibility_score || s.credibilityScore,
+    tags: typeof s.tags === 'string' ? JSON.parse(s.tags) : s.tags || [],
+  }));
 }
 
 async function fetchFeed(feed: FeedItem) {
@@ -62,10 +73,10 @@ async function fetchFeed(feed: FeedItem) {
       if (result.changes > 0) newCount++;
     }
 
-    console.log(`  [${feed.name}] Fetched ${items.length} items, ${newCount} new`);
+    log.info(`Feed fetched`, { feed: feed.name, items: items.length, newArticles: newCount });
     return newCount;
   } catch (err: any) {
-    console.error(`  [${feed.name}] Error: ${err.message}`);
+    log.warn(`Feed failed`, { feed: feed.name, error: err.message });
     return 0;
   }
 }
@@ -73,7 +84,7 @@ async function fetchFeed(feed: FeedItem) {
 export async function ingestAll() {
   await getDb();
   const feeds = await loadFeeds();
-  console.log(`\n🚀 Starting RSS ingestion for ${feeds.length} sources...`);
+  log.info('Starting RSS ingestion', { feedCount: feeds.length });
 
   let totalNew = 0;
   const batchSize = 5;
@@ -84,7 +95,7 @@ export async function ingestAll() {
     totalNew += results.reduce((a, b) => a + b, 0);
   }
 
-  console.log(`\n✅ Ingestion complete. ${totalNew} new articles added.`);
+  log.info('Ingestion complete', { newArticles: totalNew });
   return totalNew;
 }
 

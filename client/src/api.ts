@@ -161,3 +161,213 @@ export async function getEvents(
   if (!res.ok) throw new Error('Failed to fetch events');
   return res.json();
 }
+
+// ─── News Archive Types ──────────────────────────────────────────────
+
+export interface NewsArchiveArticle {
+  id: number;
+  url: string;
+  title: string;
+  domain: string;
+  source_country: string;
+  language: string;
+  published_at: string;
+  image_url: string;
+  tone: number;
+  downloaded_at: string;
+}
+
+export interface NewsArchiveSearchResult {
+  articles: NewsArchiveArticle[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface NewsArchiveStats {
+  total: number;
+  earliest: string | null;
+  latest: string | null;
+  topDomains: { domain: string; count: number }[];
+  topCountries: { country: string; count: number }[];
+  weeklyVolume: { week: string; count: number }[];
+  dailyVolume: { date: string; count: number }[];
+}
+
+export interface NewsArchiveDownloadStatus {
+  status: string;
+  startDate: string;
+  endDate: string;
+  currentDate: string;
+  totalDays: number;
+  completedDays: number;
+  totalArticles: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  lastError: string | null;
+  pct: number;
+  etaMin: number;
+}
+
+export async function searchNewsArchive(
+  query: string,
+  dateFrom?: string,
+  dateTo?: string,
+  page: number = 1,
+  limit: number = 50
+): Promise<NewsArchiveSearchResult> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (query) params.set('query', query);
+  if (dateFrom) params.set('dateFrom', dateFrom);
+  if (dateTo) params.set('dateTo', dateTo);
+  const res = await fetch(`${API_BASE}/news-archive?${params}`);
+  if (!res.ok) throw new Error('Failed to search archive');
+  return res.json();
+}
+
+export async function getNewsArchiveStats(): Promise<NewsArchiveStats> {
+  const res = await fetch(`${API_BASE}/news-archive/stats`);
+  if (!res.ok) throw new Error('Failed to get archive stats');
+  return res.json();
+}
+
+export async function getNewsArchiveDownloadStatus(): Promise<NewsArchiveDownloadStatus> {
+  const res = await fetch(`${API_BASE}/news-archive/download/status`);
+  if (!res.ok) throw new Error('Failed to get download status');
+  return res.json();
+}
+
+export async function startNewsArchiveDownload(
+  startDate: string,
+  endDate: string,
+  query?: string
+): Promise<{ ok: boolean; totalDays?: number; error?: string }> {
+  const res = await fetch(`${API_BASE}/news-archive/download`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ startDate, endDate, query }),
+  });
+  return res.json();
+}
+
+export async function abortNewsArchiveDownload(): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_BASE}/news-archive/download/abort`, { method: 'POST' });
+  return res.json();
+}
+
+// ─── Janus Types ─────────────────────────────────────────────────────
+
+export interface HeatmapEntry {
+  country: string;
+  articleCount: number;
+  avgTone: number;
+  tickerCount: number;
+  totalMcap: number;
+}
+
+export interface DivergenceEntry {
+  symbol: string;
+  name: string;
+  sector: string;
+  country: string;
+  marketCap: number;
+  volatilityPct: number;
+  priceRangePct: number;
+  avgVolume: number;
+  sectorNewsHeat: number;
+  divergenceScore: number;
+}
+
+export interface EchoLeader {
+  country: string;
+  firstSeen: string;
+  articleCount: number;
+  avgTone: number;
+}
+
+export interface EchoDomain {
+  domain: string;
+  country: string;
+  articles: number;
+  tone: number;
+}
+
+export interface RadarTicker {
+  symbol: string;
+  name: string;
+  sector: string;
+  country: string;
+  range7d: number;
+  change7d: number;
+  avgVolume: number;
+  riskLevel: string;
+}
+
+export interface PolarizedDomain {
+  domain: string;
+  avgTone: number;
+  toneSpread: number;
+  articles: number;
+}
+
+export interface ShockwaveMover {
+  symbol: string;
+  name: string;
+  sector: string;
+  movePct: number;
+  avgVolume: number;
+}
+
+export interface CredibilityEntry {
+  symbol: string;
+  name: string;
+  sector: string;
+  country: string;
+  marketCap: number;
+  totalReturn: number;
+  maxDrawdown: number;
+  ccr: number;
+  rating: string;
+}
+
+export async function getJanusHeatmap(): Promise<{ heatmap: HeatmapEntry[] }> {
+  const res = await fetch(`${API_BASE}/janus/heatmap`);
+  if (!res.ok) throw new Error('Failed to fetch heatmap');
+  return res.json();
+}
+
+export async function getJanusDivergence(limit = 20): Promise<{ divergence: DivergenceEntry[] }> {
+  const res = await fetch(`${API_BASE}/janus/divergence?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch divergence');
+  return res.json();
+}
+
+export async function getJanusEchoChamber(): Promise<{ leaders: EchoLeader[]; domains: EchoDomain[] }> {
+  const res = await fetch(`${API_BASE}/janus/echo-chamber`);
+  if (!res.ok) throw new Error('Failed to fetch echo chamber');
+  return res.json();
+}
+
+export async function getJanusVolatilityRadar(limit = 20): Promise<{ polarizedDomains: PolarizedDomain[]; radar: RadarTicker[] }> {
+  const res = await fetch(`${API_BASE}/janus/volatility-radar?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch volatility radar');
+  return res.json();
+}
+
+export async function getJanusShockwave(topic?: string, limit = 10): Promise<{ topic: string; articleCount: number; recentArticles: any[]; volatilePeriods: any[]; topMovers: ShockwaveMover[] }> {
+  const params = new URLSearchParams();
+  if (topic) params.set('topic', topic);
+  params.set('limit', String(limit));
+  const res = await fetch(`${API_BASE}/janus/shockwave?${params}`);
+  if (!res.ok) throw new Error('Failed to fetch shockwave');
+  return res.json();
+}
+
+export async function getJanusCredibility(sector?: string, limit = 30): Promise<{ credibility: CredibilityEntry[]; sectors: string[] }> {
+  const params = new URLSearchParams();
+  if (sector) params.set('sector', sector);
+  params.set('limit', String(limit));
+  const res = await fetch(`${API_BASE}/janus/credibility?${params}`);
+  if (!res.ok) throw new Error('Failed to fetch credibility');
+  return res.json();
+}

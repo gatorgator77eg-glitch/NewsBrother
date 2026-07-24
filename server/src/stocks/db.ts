@@ -1,7 +1,9 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
+import { createLogger } from '../logger';
 
+const log = createLogger({ module: 'stocks-db' });
 const DB_PATH = path.join(__dirname, '..', '..', 'data', 'stocks.db');
 let db: SqlJsDatabase;
 let saveTimeout: NodeJS.Timeout | null = null;
@@ -14,11 +16,14 @@ export async function getStockDb(): Promise<SqlJsDatabase> {
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  if (fs.existsSync(DB_PATH)) {
+  const existed = fs.existsSync(DB_PATH);
+  if (existed) {
     const buffer = fs.readFileSync(DB_PATH);
     db = new SQL.Database(buffer);
+    log.info('Opened existing stocks.db', { sizeKB: Math.round(buffer.byteLength / 1024) });
   } else {
     db = new SQL.Database();
+    log.info('Created new stocks.db');
   }
 
   initStockSchema();
@@ -31,6 +36,7 @@ function flushStockDb() {
   const data = db.export();
   const buffer = Buffer.from(data);
   fs.writeFileSync(DB_PATH, buffer);
+  log.debug('Flushed stocks.db to disk', { sizeKB: Math.round(buffer.byteLength / 1024) });
 }
 
 function scheduleStockDbSave() {

@@ -1,6 +1,9 @@
 import * as stringSimilarity from 'string-similarity';
 import { getDb, createCluster, assignArticleToCluster, getUnclusteredArticles } from './db';
 import { resultToObjects } from './utils';
+import { createLogger } from './logger';
+
+const log = createLogger({ module: 'clustering' });
 
 const SIMILARITY_THRESHOLD = 0.55;
 
@@ -24,11 +27,11 @@ export async function clusterArticles() {
   const unclustered = getUnclusteredArticles();
 
   if (unclustered.length === 0) {
-    console.log('  No unclustered articles found.');
+    log.debug('No unclustered articles');
     return 0;
   }
 
-  console.log(`  Clustering ${unclustered.length} unclustered articles...`);
+  log.info('Clustering articles', { count: unclustered.length });
 
   const clusterResult = db.exec(`
     SELECT c.id, c.topic_label, a.title
@@ -78,7 +81,7 @@ export async function clusterArticles() {
     }
   }
 
-  console.log(`  Clustered ${clustered} articles.`);
+  log.info('Clustering complete', { clustered });
   return clustered;
 }
 

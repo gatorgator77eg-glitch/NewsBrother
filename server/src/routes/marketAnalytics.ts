@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getStockDb } from '../stocks/db';
+import { createLogger } from '../logger';
 
+const log = createLogger({ module: 'analytics' });
 export const marketAnalyticsRoutes = Router();
 
 function query(db: any, sql: string, params: any[] = []): any[] {
@@ -33,6 +35,7 @@ function getCloseOnDate(db: any, symbol: string, daysAgo: number): number | null
 
 // ── 1. Top Movers ──
 marketAnalyticsRoutes.get('/market-analytics/movers', async (_req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const tickers = query(db, `SELECT symbol, name, sector, exchange, market_cap FROM stock_tickers WHERE market_cap > 0 ORDER BY market_cap DESC LIMIT 500`);
@@ -56,14 +59,17 @@ marketAnalyticsRoutes.get('/market-analytics/movers', async (_req, res) => {
       };
     }).filter(Boolean);
 
+    log.info('Movers computed', { count: results.length, duration: Date.now() - start });
     res.json({ movers: results });
   } catch (err: any) {
+    log.error('Movers failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 2. Volume Spikes ──
 marketAnalyticsRoutes.get('/market-analytics/volume', async (_req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const tickers = query(db, `SELECT symbol, name, sector FROM stock_tickers WHERE market_cap > 5000000000 ORDER BY market_cap DESC LIMIT 200`);
@@ -92,14 +98,17 @@ marketAnalyticsRoutes.get('/market-analytics/volume', async (_req, res) => {
     }).filter(Boolean);
 
     results.sort((a: any, b: any) => b.ratio - a.ratio);
+    log.info('Volume spikes computed', { count: results.length, duration: Date.now() - start });
     res.json({ volume: results.slice(0, 50) });
   } catch (err: any) {
+    log.error('Volume failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 3. Sector Performance ──
 marketAnalyticsRoutes.get('/market-analytics/sectors', async (_req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const sectors = query(db, `SELECT DISTINCT sector FROM stock_tickers WHERE sector != '' AND sector != 'N/A'`);
@@ -135,14 +144,17 @@ marketAnalyticsRoutes.get('/market-analytics/sectors', async (_req, res) => {
     });
 
     results.sort((a: any, b: any) => (b['1Y'] || 0) - (a['1Y'] || 0));
+    log.info('Sectors computed', { count: results.length, duration: Date.now() - start });
     res.json({ sectors: results });
   } catch (err: any) {
+    log.error('Sectors failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 4. Seasonality ──
 marketAnalyticsRoutes.get('/market-analytics/seasonality', async (req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const symbol = (req.query.symbol as string) || 'SPY';
@@ -191,12 +203,14 @@ marketAnalyticsRoutes.get('/market-analytics/seasonality', async (req, res) => {
 
     res.json({ seasonality: data, symbols_used: symbols.length });
   } catch (err: any) {
+    log.error('Seasonality failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 5. Correlation Matrix ──
 marketAnalyticsRoutes.get('/market-analytics/correlation', async (req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const symbolsParam = (req.query.symbols as string) || '';
@@ -257,12 +271,14 @@ marketAnalyticsRoutes.get('/market-analytics/correlation', async (req, res) => {
 
     res.json({ correlation: matrix, symbols, dates_used: commonDates.length });
   } catch (err: any) {
+    log.error('Correlation failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 6. Risk/Reward Scatter ──
 marketAnalyticsRoutes.get('/market-analytics/risk-reward', async (_req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const tickers = query(db, `SELECT symbol, name, sector, market_cap FROM stock_tickers WHERE market_cap > 10000000000 ORDER BY market_cap DESC LIMIT 200`);
@@ -302,12 +318,14 @@ marketAnalyticsRoutes.get('/market-analytics/risk-reward', async (_req, res) => 
 
     res.json({ risk_reward: results });
   } catch (err: any) {
+    log.error('Risk-reward failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 7. Market Heatmap (sector->stocks) ──
 marketAnalyticsRoutes.get('/market-analytics/heatmap', async (_req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const tickers = query(db, `SELECT symbol, name, sector, exchange, market_cap FROM stock_tickers WHERE market_cap > 0 ORDER BY market_cap DESC LIMIT 500`);
@@ -328,15 +346,18 @@ marketAnalyticsRoutes.get('/market-analytics/heatmap', async (_req, res) => {
 
     res.json({ heatmap: results });
   } catch (err: any) {
+    log.error('Heatmap failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });
 
 // ── 8. Country Performance ──
 marketAnalyticsRoutes.get('/market-analytics/countries', async (_req, res) => {
+  const start = Date.now();
   try {
     const db = await getStockDb();
     const countries = query(db, `SELECT DISTINCT country FROM stock_tickers WHERE country != '' AND country != 'N/A'`);
+    log.info('Countries query', { distinctCountries: countries.length });
 
     const results = countries.map(c => {
       const countryTickers = query(db, `SELECT symbol FROM stock_tickers WHERE country = ? ORDER BY market_cap DESC LIMIT 50`, [c.country]);
@@ -378,8 +399,11 @@ marketAnalyticsRoutes.get('/market-analytics/countries', async (_req, res) => {
     });
 
     results.sort((a: any, b: any) => b.total_market_cap - a.total_market_cap);
-    res.json({ countries: results.filter((c: any) => c.tickerCount >= 3) });
+    const filtered = results.filter((c: any) => c.tickerCount >= 3);
+    log.info('Countries computed', { total: results.length, returned: filtered.length, duration: Date.now() - start });
+    res.json({ countries: filtered });
   } catch (err: any) {
+    log.error('Countries failed', { error: err.message, stack: err.stack, duration: Date.now() - start });
     res.status(500).json({ error: err.message });
   }
 });

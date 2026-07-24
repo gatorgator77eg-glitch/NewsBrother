@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { getDb } from '../db';
 import { resultToObjects } from '../utils';
+import { createLogger } from '../logger';
 
+const log = createLogger({ module: 'graph' });
 export const graphRoutes = Router();
 
 type GraphNodeType = 'source' | 'article' | 'cluster';
@@ -135,7 +137,7 @@ graphRoutes.get('/graph/breaking', async (_req, res) => {
     const graph = buildGraphFromArticles(articles);
     res.json(graph);
   } catch (err: any) {
-    console.error('Graph breaking error:', err);
+    log.error('Graph breaking failed', { error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Failed to build graph' });
   }
 });
@@ -189,7 +191,7 @@ graphRoutes.get('/graph/search', async (req, res) => {
     const graph = buildGraphFromArticles(articles);
     res.json(graph);
   } catch (err: any) {
-    console.error('Graph search error:', err);
+    log.error('Graph search failed', { error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Failed to build graph' });
   }
 });
@@ -218,7 +220,7 @@ graphRoutes.get('/graph/topic/:id', async (req, res) => {
     const graph = buildGraphFromArticles(articles);
     res.json(graph);
   } catch (err: any) {
-    console.error('Graph topic error:', err);
+    log.error('Graph topic failed', { error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Failed to build graph' });
   }
 });

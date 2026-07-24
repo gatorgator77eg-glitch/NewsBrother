@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import cron from 'node-cron';
-import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import logger from './logger';
+import { requestIdMiddleware, requestLoggingMiddleware, errorMiddleware } from './middleware/logging';
 import { searchRoutes } from './routes/search';
 import { topicsRoutes } from './routes/topics';
 import { blindspotsRoutes } from './routes/blindspots';
@@ -14,14 +15,18 @@ import { eventsRoutes } from './routes/events';
 import { stocksRoutes } from './routes/stocks';
 import { marketAnalyticsRoutes } from './routes/marketAnalytics';
 import { newsVsPriceRoutes } from './routes/newsVsPrice';
+import { newsArchiveRoutes } from './routes/newsArchive';
+import { janusRoutes } from './routes/janus';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
 import { clusterArticles } from './clustering';
 
+const log = logger.child({ module: 'server' });
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(morgan('dev'));
+app.use(requestIdMiddleware);
+app.use(requestLoggingMiddleware);
 app.use(cors());
 app.use(express.json());
 
@@ -45,31 +50,36 @@ app.use('/api', eventsRoutes);
 app.use('/api', stocksRoutes);
 app.use('/api', marketAnalyticsRoutes);
 app.use('/api', newsVsPriceRoutes);
+app.use('/api/news-archive', newsArchiveRoutes);
+app.use('/api/janus', janusRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use(errorMiddleware);
+
 cron.schedule('*/5 * * * *', async () => {
-  console.log('\n⏰ Cron: Starting ingestion cycle...');
+  log.info('Cron: Starting ingestion cycle');
   try {
     await ingestAll();
     await clusterArticles();
-  } catch (err) {
-    console.error('Cron error:', err);
+    log.info('Cron: Ingestion cycle complete');
+  } catch (err: any) {
+    log.error('Cron: Ingestion cycle failed', { error: err.message, stack: err.stack });
   }
 });
 
 (async () => {
   await getDb();
-  console.log('📦 Database initialized.');
+  log.info('Database initialized');
 
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    log.info(`Server listening on http://localhost:${PORT}`);
 
     ingestAll()
       .then(() => clusterArticles())
-      .then(() => console.log('🎉 Initial data load complete!'))
-      .catch(err => console.error('Initial load error:', err));
+      .then(() => log.info('Initial data load complete'))
+      .catch((err: any) => log.error('Initial load failed', { error: err.message, stack: err.stack }));
   });
 })();

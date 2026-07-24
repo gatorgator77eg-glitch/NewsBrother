@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
 import Parser from 'rss-parser';
+import { createLogger } from '../logger';
+
+const log = createLogger({ module: 'google-news' });
 
 const parser = new Parser({
   timeout: 10000,
@@ -61,7 +64,7 @@ googleNewsRoutes.get('/google-news', async (req: Request, res: Response) => {
       articles: paged,
     });
   } catch (err: any) {
-    console.error('Google News search error:', err.message);
+    log.error('Google News search failed', { query: req.query.q, error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Failed to fetch news from Google News' });
   }
 });

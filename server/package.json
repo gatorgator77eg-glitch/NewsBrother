@@ -19,6 +19,8 @@
     "rss-parser": "^3.13.0",
     "sql.js": "^1.10.3",
     "string-similarity": "^4.0.4",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "yahoo-finance2": "^4.0.0"
   },
   "devDependencies": {

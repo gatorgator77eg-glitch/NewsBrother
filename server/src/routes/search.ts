@@ -3,7 +3,9 @@ import { searchArticles, getArticlesByCluster, getAllClusters } from '../db';
 import { resultToObjects } from '../utils';
 import { getDb } from '../db';
 import * as stringSimilarity from 'string-similarity';
+import { createLogger } from '../logger';
 
+const log = createLogger({ module: 'search' });
 export const searchRoutes = Router();
 
 const SEARCH_COLUMNS = ['left', 'lean-left', 'center', 'lean-right', 'right'] as const;
@@ -72,7 +74,7 @@ searchRoutes.get('/search', async (req, res) => {
 
     res.json({ nodes, total, page, limit });
   } catch (err: any) {
-    console.error('Search error:', err);
+    log.error('Search failed', { query: q, error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Search failed' });
   }
 });

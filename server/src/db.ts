@@ -2,7 +2,9 @@ import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
 import { resultToObjects } from './utils';
+import { createLogger } from './logger';
 
+const log = createLogger({ module: 'news-db' });
 const DB_PATH = path.join(__dirname, '..', 'data', 'news.db');
 let db: SqlJsDatabase;
 let saveTimeout: NodeJS.Timeout | null = null;
@@ -15,11 +17,14 @@ export async function getDb(): Promise<SqlJsDatabase> {
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  if (fs.existsSync(DB_PATH)) {
+  const existed = fs.existsSync(DB_PATH);
+  if (existed) {
     const buffer = fs.readFileSync(DB_PATH);
     db = new SQL.Database(buffer);
+    log.info('Opened existing news.db', { sizeKB: Math.round(buffer.byteLength / 1024) });
   } else {
     db = new SQL.Database();
+    log.info('Created new news.db');
   }
 
   initSchema();
@@ -32,6 +37,7 @@ function flushDb() {
   const data = db.export();
   const buffer = Buffer.from(data);
   fs.writeFileSync(DB_PATH, buffer);
+  log.debug('Flushed news.db to disk', { sizeKB: Math.round(buffer.byteLength / 1024) });
 }
 
 function scheduleDbSave() {
@@ -113,7 +119,8 @@ export function insertArticle(article: {
     const changes = db.getRowsModified();
     scheduleDbSave();
     return { changes };
-  } catch {
+  } catch (err: any) {
+    log.debug('Article insert ignored', { url: article.url, error: err.message });
     return { changes: 0 };
   }
 }

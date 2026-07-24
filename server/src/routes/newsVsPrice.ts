@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import Parser from 'rss-parser';
 import { getStockDb, getTickerInfo, getTickerHistory } from '../stocks/db';
+import { createLogger } from '../logger';
+
+const log = createLogger({ module: 'news-vs-price' });
 
 const parser = new Parser({
   timeout: 10000,
@@ -109,8 +112,8 @@ newsVsPriceRoutes.get('/news-vs-price/:symbol', async (req: Request, res: Respon
     });
 
     res.json({ ticker, prices, news: allNews });
-  } catch (err) {
-    console.error('News vs Price error:', err);
+  } catch (err: any) {
+    log.error('News vs Price failed', { symbol: req.params.symbol, error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Internal server error' });
   }
 });

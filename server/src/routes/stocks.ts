@@ -13,7 +13,9 @@ import {
   setMeta,
 } from '../stocks/db';
 import { runFullDownload, runSmartUpdate, isDownloading, abortDownload } from '../stocks/downloader';
+import { createLogger } from '../logger';
 
+const log = createLogger({ module: 'stocks-route' });
 export const stocksRoutes = Router();
 
 let batchProcess: ReturnType<typeof spawn> | null = null;
@@ -82,7 +84,7 @@ stocksRoutes.post('/stocks/download', async (_req, res) => {
     return;
   }
   res.json({ message: 'Download started' });
-  runFullDownload().catch(err => console.error('Download failed:', err));
+  runFullDownload().catch(err => log.error('Download failed', { error: err.message, stack: err.stack }));
 });
 
 stocksRoutes.post('/stocks/update', async (_req, res) => {
@@ -91,7 +93,7 @@ stocksRoutes.post('/stocks/update', async (_req, res) => {
     return;
   }
   res.json({ message: 'Smart update started' });
-  runSmartUpdate().catch(err => console.error('Update failed:', err));
+  runSmartUpdate().catch(err => log.error('Update failed', { error: err.message, stack: err.stack }));
 });
 
 stocksRoutes.post('/stocks/batch-download', async (req, res) => {
@@ -119,14 +121,14 @@ stocksRoutes.post('/stocks/batch-download', async (req, res) => {
 
   python.stdout?.on('data', (data: Buffer) => {
     const lines = data.toString().split('\n').filter(l => l.trim());
-    for (const line of lines) console.log(`[batch] ${line}`);
+    for (const line of lines) log.info(`[batch] ${line}`);
   });
   python.stderr?.on('data', (data: Buffer) => {
-    console.error(`[batch-err] ${data.toString().trim()}`);
+    log.error(`[batch-err] ${data.toString().trim()}`);
   });
   python.on('close', (code) => {
     batchProcess = null;
-    console.log(`Batch download finished with code ${code}`);
+    log.info(`Batch download finished`, { exitCode: code });
   });
 
   res.json({ message: 'Batch download started', mode });

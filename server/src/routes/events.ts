@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
 import Parser from 'rss-parser';
+import { createLogger } from '../logger';
+
+const log = createLogger({ module: 'events' });
 
 const parser = new Parser({
   timeout: 10000,
@@ -406,7 +409,7 @@ eventsRoutes.get('/events', async (req: Request, res: Response) => {
       hoursBack,
     });
   } catch (err: any) {
-    console.error('Events fetch error:', err.message);
+    log.error('Events fetch failed', { error: err.message, stack: err.stack });
     res.status(500).json({ error: 'Failed to fetch events' });
   }
 });

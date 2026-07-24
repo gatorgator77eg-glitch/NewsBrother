@@ -18,6 +18,8 @@ import EventRadar from './components/EventRadar';
 import StockHistory from './components/StockLibrary';
 import MarketAnalytics from './components/MarketAnalytics';
 import NewsVsPrice from './components/NewsVsPrice';
+import NewsArchive from './components/NewsArchive';
+import Janus from './components/Janus';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -53,6 +55,8 @@ export default function App() {
   const [showStocks, setShowStocks] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showNewsVsPrice, setShowNewsVsPrice] = useState(false);
+  const [showNewsArchive, setShowNewsArchive] = useState(false);
+  const [showJanus, setShowJanus] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -147,6 +151,8 @@ export default function App() {
     setShowStocks(false);
     setShowAnalytics(false);
     setShowNewsVsPrice(false);
+    setShowNewsArchive(false);
+    setShowJanus(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -190,6 +196,19 @@ export default function App() {
         hideAll();
         setShowNewsVsPrice(true);
         break;
+      case 'news-archive':
+        hideAll();
+        setShowNewsArchive(true);
+        break;
+      case 'janus-command':
+      case 'janus-echo':
+      case 'janus-volatility':
+      case 'janus-shockwave':
+      case 'janus-credibility':
+      case 'janus-research':
+        hideAll();
+        setShowJanus(true);
+        break;
     }
   };
 
@@ -225,6 +244,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -250,7 +270,7 @@ export default function App() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              {loaded && (
+              {loaded && isHomePage && (
                 <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
                   <button
                     onClick={() => setViewMode('columns')}
@@ -274,17 +294,23 @@ export default function App() {
                   </button>
                 </div>
               )}
-              <button
-                onClick={() => setShowFeeds(!showFeeds)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${showFeeds ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}
-              >
-                {showFeeds ? 'Hide Feeds' : 'RSS Sources'}
-              </button>
+              {isHomePage && (
+                <button
+                  onClick={() => setShowFeeds(!showFeeds)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${showFeeds ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}
+                >
+                  {showFeeds ? 'Hide Feeds' : 'RSS Sources'}
+                </button>
+              )}
               <ThemeToggle />
             </div>
           </div>
-          <SearchBar onSearch={(q) => handleSearch(q, 1)} onBreaking={handleBreakingNews} loading={loading} />
-          <FilterPills active={activeFilter} onSelect={setActiveFilter} />
+          {isHomePage && (
+            <>
+              <SearchBar onSearch={(q) => handleSearch(q, 1)} onBreaking={handleBreakingNews} loading={loading} />
+              <FilterPills active={activeFilter} onSelect={setActiveFilter} />
+            </>
+          )}
         </div>
       </header>
 
@@ -316,6 +342,10 @@ export default function App() {
           <MarketAnalytics onBack={() => setShowAnalytics(false)} />
         ) : showNewsVsPrice ? (
           <NewsVsPrice onBack={() => setShowNewsVsPrice(false)} />
+        ) : showNewsArchive ? (
+          <NewsArchive onBack={() => setShowNewsArchive(false)} />
+        ) : showJanus ? (
+          <Janus onBack={() => setShowJanus(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}
