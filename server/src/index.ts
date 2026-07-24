@@ -26,6 +26,7 @@ import { briefingRoutes } from './routes/briefing';
 import { timelineRoutes } from './routes/timeline';
 import { biasCompareRoutes } from './routes/biasCompare';
 import { alertsRoutes } from './routes/alerts';
+import { llmConfigRoutes } from './routes/llmConfig';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -71,6 +72,7 @@ app.use('/api/briefing', briefingRoutes);
 app.use('/api/timeline', timelineRoutes);
 app.use('/api/bias', biasCompareRoutes);
 app.use('/api/alerts', alertsRoutes);
+app.use('/api/llm-config', llmConfigRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {
