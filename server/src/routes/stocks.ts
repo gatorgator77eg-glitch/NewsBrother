@@ -24,6 +24,18 @@ function isBatchRunning() {
   return batchProcess !== null && !batchProcess.killed;
 }
 
+stocksRoutes.get('/stocks/search', async (req, res) => {
+  try {
+    await getStockDb();
+    const q = (req.query.q as string || '').trim();
+    if (!q || q.length < 1) return res.json({ results: [] });
+    const result = getTickerList(q, undefined, 1, 10);
+    res.json({ results: result.tickers });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 stocksRoutes.get('/stocks', async (req, res) => {
   try {
     await getStockDb();

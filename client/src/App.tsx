@@ -39,6 +39,7 @@ import MathVolatility from './components/MathVolatility';
 import MathTimeSeries from './components/MathTimeSeries';
 import MathAdvanced from './components/MathAdvanced';
 import HealthIndicator from './components/HealthIndicator';
+import TickerSearch from './components/TickerSearch';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -403,6 +404,7 @@ export default function App() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              <TickerSearch />
               {loaded && isHomePage && (
                 <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
                   <button

@@ -1020,3 +1020,11 @@ export async function getMathPCA(symbols: string, days = 252): Promise<any> {
   if (!res.ok) throw new Error('Failed to fetch PCA');
   return res.json();
 }
+
+export async function searchTickers(q: string): Promise<any[]> {
+  if (!q || q.length < 1) return [];
+  const res = await fetch(`${API_BASE}/stocks/search?q=${encodeURIComponent(q)}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.results || [];
+}
