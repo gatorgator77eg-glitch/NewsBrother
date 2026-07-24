@@ -6,45 +6,54 @@ export interface MenuItem {
   icon: string;
   action: string;
   disabled?: boolean;
-  divider?: boolean;
 }
 
-interface MenuGroup {
+export interface MenuGroup {
   id: string;
   label: string;
   icon: string;
-  children: MenuItem[];
+  children: (MenuItem | MenuGroup)[];
 }
 
-const MENU_GROUPS: (MenuItem | MenuGroup | { divider: string })[] = [
+type MenuEntry = MenuItem | MenuGroup | { divider: string };
+
+const MENU: MenuEntry[] = [
   { id: 'home', label: 'Home', icon: '🏠', action: 'home' },
   {
-    id: 'news',
-    label: 'News',
-    icon: '📰',
+    id: 'news', label: 'News & Analysis', icon: '📰',
     children: [
+      { id: 'briefing', label: 'Daily Briefing', icon: '📋', action: 'briefing' },
       { id: 'search', label: 'Search', icon: '🔍', action: 'search' },
       { id: 'feeds', label: 'RSS Sources', icon: '📡', action: 'feeds' },
-      { id: 'coverage', label: 'Coverage', icon: '📊', action: 'coverage' },
-      { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
-      { id: 'news-vs-price', label: 'News vs Price', icon: '📈', action: 'news-vs-price' },
-      { id: 'news-archive', label: 'News Archive', icon: '🗄️', action: 'news-archive' },
-      { id: 'sentiment', label: 'Sentiment', icon: '🎭', action: 'sentiment' },
+      {
+        id: 'news-analysis', label: 'Analysis', icon: '📊',
+        children: [
+          { id: 'coverage', label: 'Coverage', icon: '📊', action: 'coverage' },
+          { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
+          { id: 'timeline', label: 'Timeline', icon: '🕐', action: 'timeline' },
+          { id: 'bias-compare', label: 'Bias Comparator', icon: '⚖️', action: 'bias-compare' },
+        ],
+      },
+      {
+        id: 'news-data', label: 'Data', icon: '📈',
+        children: [
+          { id: 'news-vs-price', label: 'News vs Price', icon: '📈', action: 'news-vs-price' },
+          { id: 'news-archive', label: 'News Archive', icon: '🗄️', action: 'news-archive' },
+          { id: 'sentiment', label: 'Sentiment', icon: '🎭', action: 'sentiment' },
+        ],
+      },
     ],
   },
   {
-    id: 'market',
-    label: 'Market',
-    icon: '💰',
+    id: 'market', label: 'Market', icon: '💰',
     children: [
       { id: 'stocks', label: 'Stock Library', icon: '📊', action: 'stocks' },
       { id: 'analytics', label: 'Market Analytics', icon: '🔍', action: 'analytics' },
+      { id: 'watchlist', label: 'Watchlist', icon: '💼', action: 'watchlist' },
     ],
   },
   {
-    id: 'correlation',
-    label: 'Correlation',
-    icon: '📈',
+    id: 'correlation', label: 'Correlation', icon: '🔗',
     children: [
       { id: 'corr-ticker', label: 'Ticker Analysis', icon: '🎯', action: 'correlation' },
       { id: 'corr-heatmap', label: 'Sector Heatmap', icon: '🗺️', action: 'correlation' },
@@ -52,36 +61,49 @@ const MENU_GROUPS: (MenuItem | MenuGroup | { divider: string })[] = [
     ],
   },
   {
-    id: 'janus',
-    label: 'Janus',
-    icon: '👁️',
+    id: 'janus', label: 'Janus Intelligence', icon: '👁️',
     children: [
-      { id: 'janus-command', label: 'Command Center', icon: '🎯', action: 'janus-command' },
-      { id: 'janus-echo', label: 'Echo Chamber', icon: '🔊', action: 'janus-echo' },
-      { id: 'janus-volatility', label: 'Volatility Radar', icon: '⚡', action: 'janus-volatility' },
-      { id: 'janus-shockwave', label: 'Shockwave Backtest', icon: '💥', action: 'janus-shockwave' },
-      { id: 'janus-credibility', label: 'Credibility', icon: '🏅', action: 'janus-credibility' },
-      { id: 'janus-research', label: 'Deep Research', icon: '🔬', action: 'janus-research' },
+      {
+        id: 'janus-intel', label: 'Intelligence', icon: '🎯',
+        children: [
+          { id: 'janus-command', label: 'Command Center', icon: '🎯', action: 'janus-command' },
+          { id: 'janus-echo', label: 'Echo Chamber', icon: '🔊', action: 'janus-echo' },
+          { id: 'janus-volatility', label: 'Volatility Radar', icon: '⚡', action: 'janus-volatility' },
+          { id: 'janus-shockwave', label: 'Shockwave Backtest', icon: '💥', action: 'janus-shockwave' },
+        ],
+      },
+      {
+        id: 'janus-research-group', label: 'Research', icon: '🔬',
+        children: [
+          { id: 'janus-credibility', label: 'Credibility', icon: '🏅', action: 'janus-credibility' },
+          { id: 'janus-research', label: 'Deep Research', icon: '🔬', action: 'janus-research' },
+        ],
+      },
     ],
   },
   {
-    id: 'localgpu',
-    label: 'LocalGPU',
-    icon: '🖥️',
+    id: 'localgpu', label: 'LocalGPU', icon: '🖥️',
     children: [
-      { id: 'gpu-monitor', label: 'GPU Monitor', icon: '📊', action: 'gpu-monitor' },
-      { id: 'llm-chat', label: 'LLM Chat', icon: '💬', action: 'llm-chat' },
-      { id: 'llm-sentiment', label: 'Sentiment Engine', icon: '🎭', action: 'llm-sentiment' },
-      { id: 'llm-vectors', label: 'Vector Clustering', icon: '🧬', action: 'llm-vectors' },
-      { id: 'llm-analytics', label: 'GPU Analytics', icon: '📈', action: 'llm-analytics' },
-      { id: 'llm-settings', label: 'GPU Settings', icon: '⚙️', action: 'llm-settings' },
+      {
+        id: 'gpu-hardware', label: 'Hardware', icon: '📊',
+        children: [
+          { id: 'gpu-monitor', label: 'GPU Monitor', icon: '📊', action: 'gpu-monitor' },
+          { id: 'llm-settings', label: 'GPU Settings', icon: '⚙️', action: 'llm-settings' },
+        ],
+      },
+      {
+        id: 'gpu-ai', label: 'AI Engines', icon: '🤖',
+        children: [
+          { id: 'llm-chat', label: 'LLM Chat', icon: '💬', action: 'llm-chat' },
+          { id: 'llm-sentiment', label: 'Sentiment Engine', icon: '🎭', action: 'llm-sentiment' },
+          { id: 'llm-vectors', label: 'Vector Clustering', icon: '🧬', action: 'llm-vectors' },
+          { id: 'llm-analytics', label: 'GPU Analytics', icon: '📈', action: 'llm-analytics' },
+        ],
+      },
     ],
   },
+  { id: 'alerts', label: 'Alerts', icon: '🔔', action: 'alerts' },
   { divider: 'd1' },
-  { id: 'bookmarks', label: 'Bookmarks', icon: '🔖', action: 'bookmarks', disabled: true },
-  { id: 'history', label: 'History', icon: '🕐', action: 'history', disabled: true },
-  { id: 'saved-searches', label: 'Saved Searches', icon: '💾', action: 'saved-searches', disabled: true },
-  { divider: 'd2' },
   { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
 ];
 
@@ -91,16 +113,76 @@ interface Props {
   onAction: (action: string) => void;
 }
 
-function isGroup(item: MenuItem | MenuGroup | { divider: string }): item is MenuGroup {
-  return 'children' in item;
+function isGroup(item: MenuEntry): item is MenuGroup {
+  return 'children' in item && !('action' in item);
 }
 
-function isDivider(item: MenuItem | MenuGroup | { divider: string }): item is { divider: string } {
+function isDivider(item: MenuEntry): item is { divider: string } {
   return 'divider' in item;
 }
 
+function SubGroup({ group, depth, onAction, expanded, onToggle }: {
+  group: MenuGroup;
+  depth: number;
+  onAction: (action: string) => void;
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+}) {
+  const isExpanded = expanded.has(group.id);
+  const indent = depth * 16;
+
+  return (
+    <div>
+      <button
+        onClick={() => onToggle(group.id)}
+        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-gray-200"
+        style={{ paddingLeft: `${indent + 12}px` }}
+      >
+        <span className="text-sm w-5 text-center flex-shrink-0">{group.icon}</span>
+        <span className="flex-1 text-left font-medium">{group.label}</span>
+        <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      {isExpanded && (
+        <div className="border-l border-gray-200 dark:border-gray-700">
+          {group.children.map(child => {
+            if (isGroup(child)) {
+              return (
+                <SubGroup key={child.id} group={child} depth={depth + 1}
+                  onAction={onAction} expanded={expanded} onToggle={onToggle} />
+              );
+            }
+            return (
+              <button
+                key={child.id}
+                onClick={() => { if (!child.disabled) { onAction(child.action); } }}
+                disabled={child.disabled}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-all ${
+                  child.disabled
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+                style={{ paddingLeft: `${indent + 28}px` }}
+                title={child.disabled ? 'Coming soon' : undefined}
+              >
+                <span className="text-xs w-5 text-center flex-shrink-0">{child.icon}</span>
+                <span className="flex-1 text-left">{child.label}</span>
+                {child.disabled && (
+                  <span className="text-[9px] text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">Soon</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Sidebar({ isOpen, onClose, onAction }: Props) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape' && isOpen) onClose();
@@ -116,11 +198,11 @@ export default function Sidebar({ isOpen, onClose, onAction }: Props) {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => {
+  const toggle = (id: string) => {
+    setExpanded(prev => {
       const next = new Set(prev);
-      if (next.has(groupId)) next.delete(groupId);
-      else next.add(groupId);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -153,60 +235,112 @@ export default function Sidebar({ isOpen, onClose, onAction }: Props) {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-3 px-3">
-            {MENU_GROUPS.map((item) => {
+            {MENU.map((item) => {
               if (isDivider(item)) {
                 return <div key={item.divider} className="my-2 border-t border-gray-100 dark:border-gray-700" />;
               }
 
               if (isGroup(item)) {
-                const expanded = expandedGroups.has(item.id);
+                const isExpanded = expanded.has(item.id);
+                const hasOnlyGroups = item.children.every(c => isGroup(c));
+                const hasOnlyActions = item.children.every(c => !isGroup(c));
+
+                if (hasOnlyActions && item.children.length <= 4) {
+                  return (
+                    <div key={item.id}>
+                      <button
+                        onClick={() => toggle(item.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 active:scale-[0.98]"
+                      >
+                        <span className="text-base w-6 text-center">{item.icon}</span>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      {isExpanded && (
+                        <div className="ml-4 mt-0.5 mb-1 border-l border-gray-200 dark:border-gray-700 pl-1">
+                          {item.children.map(child => {
+                            if (isGroup(child)) {
+                              return (
+                                <SubGroup key={child.id} group={child} depth={1}
+                                  onAction={onAction} expanded={expanded} onToggle={toggle} />
+                              );
+                            }
+                            return (
+                              <button
+                                key={child.id}
+                                onClick={() => { if (!child.disabled) { onAction(child.action); onClose(); } }}
+                                disabled={child.disabled}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+                                  child.disabled
+                                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-gray-200'
+                                }`}
+                                title={child.disabled ? 'Coming soon' : undefined}
+                              >
+                                <span className="text-sm w-5 text-center">{child.icon}</span>
+                                <span className="flex-1 text-left">{child.label}</span>
+                                {child.disabled && (
+                                  <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">Soon</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={item.id}>
                     <button
-                      onClick={() => toggleGroup(item.id)}
+                      onClick={() => toggle(item.id)}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 active:scale-[0.98]"
                     >
                       <span className="text-base w-6 text-center">{item.icon}</span>
                       <span className="flex-1 text-left">{item.label}</span>
-                      <svg className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
-                    {expanded && (
+                    {isExpanded && (
                       <div className="ml-4 mt-0.5 mb-1 border-l border-gray-200 dark:border-gray-700 pl-1">
-                        {item.children.map(child => (
-                          <button
-                            key={child.id}
-                            onClick={() => {
-                              if (!child.disabled) {
-                                onAction(child.action);
-                                onClose();
-                              }
-                            }}
-                            disabled={child.disabled}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
-                              child.disabled
-                                ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-gray-200'
-                            }`}
-                            title={child.disabled ? 'Coming soon' : undefined}
-                          >
-                            <span className="text-sm w-5 text-center">{child.icon}</span>
-                            <span className="flex-1 text-left">{child.label}</span>
-                            {child.disabled && (
-                              <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">
-                                Soon
-                              </span>
-                            )}
-                          </button>
-                        ))}
+                        {item.children.map(child => {
+                          if (isGroup(child)) {
+                            return (
+                              <SubGroup key={child.id} group={child} depth={1}
+                                onAction={(a) => { onAction(a); onClose(); }}
+                                expanded={expanded} onToggle={toggle} />
+                            );
+                          }
+                          return (
+                            <button
+                              key={child.id}
+                              onClick={() => { if (!child.disabled) { onAction(child.action); onClose(); } }}
+                              disabled={child.disabled}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+                                child.disabled
+                                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-gray-200'
+                              }`}
+                              title={child.disabled ? 'Coming soon' : undefined}
+                            >
+                              <span className="text-sm w-5 text-center">{child.icon}</span>
+                              <span className="flex-1 text-left">{child.label}</span>
+                              {child.disabled && (
+                                <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">Soon</span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
                 );
               }
 
-              // Regular item
               return (
                 <button
                   key={item.id}
@@ -227,9 +361,7 @@ export default function Sidebar({ isOpen, onClose, onAction }: Props) {
                   <span className="text-base w-6 text-center">{item.icon}</span>
                   <span className="flex-1 text-left">{item.label}</span>
                   {item.disabled && (
-                    <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">
-                      Soon
-                    </span>
+                    <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">Soon</span>
                   )}
                 </button>
               );

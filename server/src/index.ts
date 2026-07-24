@@ -22,6 +22,10 @@ import { localgpuRoutes } from './routes/localgpu';
 import { deepResearchRoutes } from './routes/deepResearch';
 import { correlationRoutes } from './routes/correlation';
 import { exportRoutes } from './routes/export';
+import { briefingRoutes } from './routes/briefing';
+import { timelineRoutes } from './routes/timeline';
+import { biasCompareRoutes } from './routes/biasCompare';
+import { alertsRoutes } from './routes/alerts';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -63,6 +67,10 @@ app.use('/api/localgpu', localgpuRoutes);
 app.use('/api/deep-research', deepResearchRoutes);
 app.use('/api/correlation', correlationRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/briefing', briefingRoutes);
+app.use('/api/timeline', timelineRoutes);
+app.use('/api/bias', biasCompareRoutes);
+app.use('/api/alerts', alertsRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {

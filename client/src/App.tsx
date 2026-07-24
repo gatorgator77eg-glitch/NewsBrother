@@ -23,6 +23,11 @@ import Janus from './components/Janus';
 import Sentiment from './components/Sentiment';
 import LocalGPU from './components/LocalGPU';
 import CorrelationEngine from './components/CorrelationEngine';
+import DailyBriefing from './components/DailyBriefing';
+import Watchlist from './components/Watchlist';
+import Alerts from './components/Alerts';
+import TimelineExplorer from './components/TimelineExplorer';
+import BiasComparator from './components/BiasComparator';
 import HealthIndicator from './components/HealthIndicator';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
@@ -64,6 +69,11 @@ export default function App() {
   const [showSentiment, setShowSentiment] = useState(false);
   const [showLocalGpu, setShowLocalGpu] = useState(false);
   const [showCorrelation, setShowCorrelation] = useState(false);
+  const [showBriefing, setShowBriefing] = useState(false);
+  const [showWatchlist, setShowWatchlist] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [showBiasCompare, setShowBiasCompare] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -164,6 +174,11 @@ export default function App() {
     setShowSentiment(false);
     setShowLocalGpu(false);
     setShowCorrelation(false);
+    setShowBriefing(false);
+    setShowWatchlist(false);
+    setShowAlerts(false);
+    setShowTimeline(false);
+    setShowBiasCompare(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -237,6 +252,26 @@ export default function App() {
         hideAll();
         setShowCorrelation(true);
         break;
+      case 'briefing':
+        hideAll();
+        setShowBriefing(true);
+        break;
+      case 'watchlist':
+        hideAll();
+        setShowWatchlist(true);
+        break;
+      case 'alerts':
+        hideAll();
+        setShowAlerts(true);
+        break;
+      case 'timeline':
+        hideAll();
+        setShowTimeline(true);
+        break;
+      case 'bias-compare':
+        hideAll();
+        setShowBiasCompare(true);
+        break;
     }
   };
 
@@ -272,7 +307,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -386,6 +421,16 @@ export default function App() {
           <LocalGPU onBack={() => setShowLocalGpu(false)} />
         ) : showCorrelation ? (
           <CorrelationEngine onBack={() => setShowCorrelation(false)} />
+        ) : showBriefing ? (
+          <DailyBriefing onBack={() => setShowBriefing(false)} />
+        ) : showWatchlist ? (
+          <Watchlist onBack={() => setShowWatchlist(false)} />
+        ) : showAlerts ? (
+          <Alerts onBack={() => setShowAlerts(false)} />
+        ) : showTimeline ? (
+          <TimelineExplorer onBack={() => setShowTimeline(false)} />
+        ) : showBiasCompare ? (
+          <BiasComparator onBack={() => setShowBiasCompare(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

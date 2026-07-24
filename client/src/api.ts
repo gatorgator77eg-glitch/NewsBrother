@@ -739,3 +739,100 @@ export function getExportCorrelationUrl(symbol: string, days?: number): string {
 export function getExportDashboardSummaryUrl(): string {
   return `${API_BASE}/export/dashboard-summary`;
 }
+
+// ─── Briefing API ────────────────────────────────────────────────────
+
+export async function getDailyBriefing(): Promise<{
+  generatedAt: string;
+  topStories: { title: string; domain: string; country: string; tone: number; publishedAt: string; url: string }[];
+  sentimentShifts: { country: string; todayTone: number; yesterdayTone: number; change: number; count: number }[];
+  emergingNarratives: { title: string; domain: string; tone: number; publishedAt: string }[];
+  coverageByCountry: { country: string; count: number; avgTone: number }[];
+  breakingNews: { title: string; source: string; url: string; publishedAt: string }[];
+  stats: { articlesToday: number; articlesYesterday: number };
+}> {
+  const res = await fetch(`${API_BASE}/briefing/daily`);
+  if (!res.ok) throw new Error('Failed to fetch daily briefing');
+  return res.json();
+}
+
+// ─── Timeline API ────────────────────────────────────────────────────
+
+export async function getTimeline(from?: string, to?: string, granularity = 'day', country?: string, domain?: string): Promise<{
+  buckets: { date: string; count: number; avgTone: number; minTone: number; maxTone: number; positive: number; negative: number; domains: number; countries: number }[];
+  granularity: string;
+  totalCount: number;
+  avgTone: number;
+  dateRange: { from: string | null; to: string | null };
+}> {
+  const params = new URLSearchParams({ granularity });
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  if (country) params.set('country', country);
+  if (domain) params.set('domain', domain);
+  const res = await fetch(`${API_BASE}/timeline?${params}`);
+  if (!res.ok) throw new Error('Failed to fetch timeline');
+  return res.json();
+}
+
+export async function getTimelineDetail(date: string): Promise<{ date: string; articles: any[]; count: number }> {
+  const res = await fetch(`${API_BASE}/timeline/detail?date=${date}`);
+  if (!res.ok) throw new Error('Failed to fetch timeline detail');
+  return res.json();
+}
+
+// ─── Bias Compare API ────────────────────────────────────────────────
+
+export async function getBiasCompare(topic: string, days = 30): Promise<{
+  topic: string;
+  days: number;
+  groups: {
+    left: { count: number; avgTone: number; articles: any[] };
+    center: { count: number; avgTone: number; articles: any[] };
+    right: { count: number; avgTone: number; articles: any[] };
+  };
+  exclusiveWords: { leftOnly: { word: string; count: number }[]; centerOnly: { word: string; count: number }[]; rightOnly: { word: string; count: number }[] };
+  overlapWords: string[];
+  narrativeGapScore: number;
+  totalArticles: number;
+}> {
+  const params = new URLSearchParams({ topic, days: String(days) });
+  const res = await fetch(`${API_BASE}/bias/compare?${params}`);
+  if (!res.ok) throw new Error('Failed to compare bias');
+  return res.json();
+}
+
+// ─── Alerts API ──────────────────────────────────────────────────────
+
+export interface AlertConfig {
+  sentimentThreshold: number;
+  volumeThreshold: number;
+  toneShiftThreshold: number;
+  enabled: boolean;
+}
+
+export async function getAlertConfig(): Promise<{ config: AlertConfig }> {
+  const res = await fetch(`${API_BASE}/alerts/config`);
+  if (!res.ok) throw new Error('Failed to fetch alert config');
+  return res.json();
+}
+
+export async function setAlertConfig(config: Partial<AlertConfig>): Promise<{ config: AlertConfig }> {
+  const res = await fetch(`${API_BASE}/alerts/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  });
+  if (!res.ok) throw new Error('Failed to update alert config');
+  return res.json();
+}
+
+export async function scanAlerts(): Promise<{
+  alerts: { id: string; type: string; message: string; severity: string; timestamp: string; metadata: any }[];
+  scannedAt: string;
+  config: AlertConfig;
+}> {
+  const res = await fetch(`${API_BASE}/alerts/scan`);
+  if (!res.ok) throw new Error('Failed to scan alerts');
+  return res.json();
+}
