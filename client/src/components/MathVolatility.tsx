@@ -139,12 +139,17 @@ function MCViz({ data }: { data: any }) {
 }
 
 function DDViz({ data }: { data: any }) {
-  const { underwater, maxDrawdown, maxDDDuration, recoveryDays, stats } = data;
+  const underwater = data?.underwater || [];
+  const maxDrawdown = data?.maxDrawdown ?? 0;
+  const maxDDDuration = data?.maxDDDuration ?? 0;
+  const recoveryDays = data?.recoveryDays ?? 0;
+  const stats = data?.stats || {};
   const w = 800, h = 300, pad = 60;
-  const vals = underwater.map((u: any) => u.underwater);
-  const minV = Math.min(...vals), maxV = 0;
+  const vals = underwater.map((u: any) => u.underwater ?? 0);
+  if (vals.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No drawdown data available</div>;
+  const minV = Math.min(...vals);
   const sx = (i: number) => pad + (i / Math.max(vals.length - 1, 1)) * (w - 2 * pad);
-  const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
+  const sy = (v: number) => pad + (1 - (v - minV) / Math.max(minV === 0 ? 1 : -minV, 0.001)) * (h - 2 * pad);
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Drawdown Analysis — {data.symbol}</h3>
@@ -153,7 +158,7 @@ function DDViz({ data }: { data: any }) {
           { label: 'Max Drawdown', value: `${(maxDrawdown * 100).toFixed(1)}%`, color: 'text-red-400' },
           { label: 'Duration', value: `${maxDDDuration} days`, color: 'text-yellow-400' },
           { label: 'Recovery', value: `${recoveryDays} days`, color: 'text-blue-400' },
-          { label: 'Current DD', value: `${(stats.currentDrawdown * 100).toFixed(1)}%`, color: stats.currentDrawdown < -0.05 ? 'text-red-400' : 'text-green-400' },
+          { label: 'Current DD', value: `${((stats.currentDrawdown ?? 0) * 100).toFixed(1)}%`, color: (stats.currentDrawdown ?? 0) < -0.05 ? 'text-red-400' : 'text-green-400' },
         ].map(m => (
           <div key={m.label} className="bg-gray-900 rounded p-2 text-center">
             <div className="text-xs text-gray-400">{m.label}</div>
