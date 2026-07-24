@@ -142,18 +142,20 @@ function PortfolioViz({ data }: { data: any }) {
   const minVol = Math.min(...volsAll), maxVol = Math.max(...volsAll);
   const sx = (v: number) => pad + (v - minVol) / Math.max(maxVol - minVol, 0.001) * (w - 2 * pad);
   const sy = (r: number) => pad + (1 - (r - minRet) / Math.max(maxRet - minRet, 0.001)) * (h - 2 * pad);
+  const oRet = optimalPortfolio.return ?? 0, oVol = optimalPortfolio.vol ?? 0, oSharpe = optimalPortfolio.sharpe ?? 0;
+  const mRet = minVariance.return ?? 0, mVol = minVariance.vol ?? 0, mSharpe = minVariance.sharpe ?? 0;
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Markowitz Optimal Portfolio</h3>
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-green-900/30 rounded p-3">
           <div className="text-sm text-green-400 font-semibold">Max Sharpe Portfolio</div>
-          <div className="text-xs text-gray-400">Return: {(optimalPortfolio.return * 100).toFixed(1)}% | Vol: {(optimalPortfolio.vol * 100).toFixed(1)}% | Sharpe: {optimalPortfolio.sharpe.toFixed(3)}</div>
+          <div className="text-xs text-gray-400">Return: {(oRet * 100).toFixed(1)}% | Vol: {(oVol * 100).toFixed(1)}% | Sharpe: {oSharpe.toFixed(3)}</div>
           <div className="text-xs text-gray-500 mt-1">{Object.entries(optimalPortfolio.weights).filter(([_, w]: [string, any]) => w > 0.05).map(([s, w]: [string, any]) => `${s}: ${(w * 100).toFixed(0)}%`).join(' | ')}</div>
         </div>
         <div className="bg-blue-900/30 rounded p-3">
           <div className="text-sm text-blue-400 font-semibold">Min Variance Portfolio</div>
-          <div className="text-xs text-gray-400">Return: {(minVariance.return * 100).toFixed(1)}% | Vol: {(minVariance.vol * 100).toFixed(1)}% | Sharpe: {minVariance.sharpe.toFixed(3)}</div>
+          <div className="text-xs text-gray-400">Return: {(mRet * 100).toFixed(1)}% | Vol: {(mVol * 100).toFixed(1)}% | Sharpe: {mSharpe.toFixed(3)}</div>
           <div className="text-xs text-gray-500 mt-1">{Object.entries(minVariance.weights).filter(([_, w]: [string, any]) => w > 0.05).map(([s, w]: [string, any]) => `${s}: ${(w * 100).toFixed(0)}%`).join(' | ')}</div>
         </div>
       </div>
@@ -161,10 +163,10 @@ function PortfolioViz({ data }: { data: any }) {
         <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#4B5563" strokeWidth="1" />
         <line x1={pad} y1={pad} x2={pad} y2={h - pad} stroke="#4B5563" strokeWidth="1" />
         {frontier.map((p: any, i: number) => (
-          <circle key={i} cx={sx(p.vol)} cy={sy(p.ret)} r={p.sharpe === optimalPortfolio.sharpe ? 6 : 3} fill={p.sharpe === optimalPortfolio.sharpe ? '#22C55E' : p.sharpe === minVariance.sharpe ? '#3B82F6' : '#6B7280'} />
+          <circle key={i} cx={sx(p.vol)} cy={sy(p.ret)} r={p.sharpe === oSharpe ? 6 : 3} fill={p.sharpe === oSharpe ? '#22C55E' : p.sharpe === mSharpe ? '#3B82F6' : '#6B7280'} />
         ))}
-        <circle cx={sx(optimalPortfolio.vol)} cy={sy(optimalPortfolio.return)} r="8" fill="none" stroke="#22C55E" strokeWidth="2" />
-        <circle cx={sx(minVariance.vol)} cy={sy(minVariance.return)} r="8" fill="none" stroke="#3B82F6" strokeWidth="2" />
+        <circle cx={sx(oVol)} cy={sy(oRet)} r="8" fill="none" stroke="#22C55E" strokeWidth="2" />
+        <circle cx={sx(mVol)} cy={sy(mRet)} r="8" fill="none" stroke="#3B82F6" strokeWidth="2" />
         <text x={w - pad - 10} y={h - pad + 20} textAnchor="end" fill="#9CA3AF" fontSize="10">Volatility →</text>
         <text x={15} y={pad + 10} fill="#9CA3AF" fontSize="10">← Return</text>
       </svg>

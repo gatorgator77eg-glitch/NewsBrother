@@ -101,7 +101,7 @@ mathAdvancedRoutes.get('/portfolio', async (req, res) => {
       let portRet = 0, portVar = 0;
       for (const s of symbols) portRet += weights[s] * annM[s];
       for (const s of symbols) for (const s2 of symbols) portVar += weights[s] * weights[s2] * covMatrix[s][s2] * 252;
-      const vol = Math.sqrt(portVar);
+      const vol = Math.sqrt(Math.max(portVar, 0));
       portfolios.push({ weights, return: portRet, vol, sharpe: vol === 0 ? 0 : portRet / vol });
     }
     const maxSharpe = portfolios.reduce((best, p) => p.sharpe > best.sharpe ? p : best, portfolios[0]);
