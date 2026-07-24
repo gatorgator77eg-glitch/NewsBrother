@@ -32,6 +32,12 @@ import SmartVelocityScanner from './components/SmartVelocityScanner';
 import SmartPriceImpact from './components/SmartPriceImpact';
 import SmartLeadLag from './components/SmartLeadLag';
 import SmartHeatmap from './components/SmartHeatmap';
+import MathRegression from './components/MathRegression';
+import MathCorrelation from './components/MathCorrelation';
+import MathDistribution from './components/MathDistribution';
+import MathVolatility from './components/MathVolatility';
+import MathTimeSeries from './components/MathTimeSeries';
+import MathAdvanced from './components/MathAdvanced';
 import HealthIndicator from './components/HealthIndicator';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
@@ -82,6 +88,12 @@ export default function App() {
   const [showSmartImpact, setShowSmartImpact] = useState(false);
   const [showSmartLeadLag, setShowSmartLeadLag] = useState(false);
   const [showSmartHeatmap, setShowSmartHeatmap] = useState(false);
+  const [showMathRegression, setShowMathRegression] = useState(false);
+  const [showMathCorrelation, setShowMathCorrelation] = useState(false);
+  const [showMathDistribution, setShowMathDistribution] = useState(false);
+  const [showMathVolatility, setShowMathVolatility] = useState(false);
+  const [showMathTimeSeries, setShowMathTimeSeries] = useState(false);
+  const [showMathAdvanced, setShowMathAdvanced] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -191,6 +203,12 @@ export default function App() {
     setShowSmartImpact(false);
     setShowSmartLeadLag(false);
     setShowSmartHeatmap(false);
+    setShowMathRegression(false);
+    setShowMathCorrelation(false);
+    setShowMathDistribution(false);
+    setShowMathVolatility(false);
+    setShowMathTimeSeries(false);
+    setShowMathAdvanced(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -300,6 +318,30 @@ export default function App() {
         hideAll();
         setShowSmartHeatmap(true);
         break;
+      case 'math-regression':
+        hideAll();
+        setShowMathRegression(true);
+        break;
+      case 'math-correlation':
+        hideAll();
+        setShowMathCorrelation(true);
+        break;
+      case 'math-distribution':
+        hideAll();
+        setShowMathDistribution(true);
+        break;
+      case 'math-volatility':
+        hideAll();
+        setShowMathVolatility(true);
+        break;
+      case 'math-timeseries':
+        hideAll();
+        setShowMathTimeSeries(true);
+        break;
+      case 'math-advanced':
+        hideAll();
+        setShowMathAdvanced(true);
+        break;
     }
   };
 
@@ -335,7 +377,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -467,6 +509,18 @@ export default function App() {
           <SmartLeadLag onBack={() => setShowSmartLeadLag(false)} />
         ) : showSmartHeatmap ? (
           <SmartHeatmap onBack={() => setShowSmartHeatmap(false)} />
+        ) : showMathRegression ? (
+          <MathRegression onBack={() => setShowMathRegression(false)} />
+        ) : showMathCorrelation ? (
+          <MathCorrelation onBack={() => setShowMathCorrelation(false)} />
+        ) : showMathDistribution ? (
+          <MathDistribution onBack={() => setShowMathDistribution(false)} />
+        ) : showMathVolatility ? (
+          <MathVolatility onBack={() => setShowMathVolatility(false)} />
+        ) : showMathTimeSeries ? (
+          <MathTimeSeries onBack={() => setShowMathTimeSeries(false)} />
+        ) : showMathAdvanced ? (
+          <MathAdvanced onBack={() => setShowMathAdvanced(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

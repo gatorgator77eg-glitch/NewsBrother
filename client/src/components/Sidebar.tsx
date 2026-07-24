@@ -112,6 +112,17 @@ const MENU: MenuEntry[] = [
     ],
   },
   { id: 'alerts', label: 'Alerts', icon: '🔔', action: 'alerts' },
+  {
+    id: 'math', label: 'Math', icon: '🧮',
+    children: [
+      { id: 'math-regression', label: 'Regression', icon: '📈', action: 'math-regression' },
+      { id: 'math-correlation', label: 'Correlation', icon: '🔗', action: 'math-correlation' },
+      { id: 'math-distribution', label: 'Distribution', icon: '📊', action: 'math-distribution' },
+      { id: 'math-volatility', label: 'Volatility & Risk', icon: '⚡', action: 'math-volatility' },
+      { id: 'math-timeseries', label: 'Time Series', icon: '⏱️', action: 'math-timeseries' },
+      { id: 'math-advanced', label: 'Advanced', icon: '🧬', action: 'math-advanced' },
+    ],
+  },
   { divider: 'd1' },
   { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
 ];

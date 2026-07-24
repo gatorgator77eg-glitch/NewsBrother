@@ -863,3 +863,160 @@ export async function getSmartHeatmap(): Promise<any> {
   if (!res.ok) throw new Error('Failed to fetch heatmap');
   return res.json();
 }
+
+// ─── Math API ────────────────────────────────────────────────────────
+
+export async function getMathLinearRegression(symbol: string, days?: number): Promise<any> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/math/regression/linear/${symbol}${q}`);
+  if (!res.ok) throw new Error('Failed to fetch linear regression');
+  return res.json();
+}
+
+export async function getMathExponentialRegression(symbol: string, days?: number): Promise<any> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/math/regression/exponential/${symbol}${q}`);
+  if (!res.ok) throw new Error('Failed to fetch exponential regression');
+  return res.json();
+}
+
+export async function getMathPolynomialRegression(symbol: string, days?: number, degree = 3): Promise<any> {
+  const q = new URLSearchParams();
+  if (days) q.set('days', String(days));
+  q.set('degree', String(degree));
+  const res = await fetch(`${API_BASE}/math/regression/polynomial/${symbol}?${q}`);
+  if (!res.ok) throw new Error('Failed to fetch polynomial regression');
+  return res.json();
+}
+
+export async function getMathTrend(symbol: string, window = 20): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/regression/trend/${symbol}?window=${window}`);
+  if (!res.ok) throw new Error('Failed to fetch trend');
+  return res.json();
+}
+
+export async function getMathCorrelationMatrix(symbols: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/correlation/matrix?symbols=${symbols}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch correlation matrix');
+  return res.json();
+}
+
+export async function getMathSpearman(symbols: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/correlation/spearman?symbols=${symbols}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch spearman');
+  return res.json();
+}
+
+export async function getMathBetaAlpha(symbol: string, benchmark = 'SPY', days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/correlation/beta-alpha/${symbol}?benchmark=${benchmark}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch beta-alpha');
+  return res.json();
+}
+
+export async function getMathCointegration(s1: string, s2: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/correlation/cointegration?s1=${s1}&s2=${s2}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch cointegration');
+  return res.json();
+}
+
+export async function getMathGranger(symbol: string, cause = 'SPY', days = 252, lag = 5): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/correlation/granger/${symbol}?cause=${cause}&days=${days}&lag=${lag}`);
+  if (!res.ok) throw new Error('Failed to fetch granger');
+  return res.json();
+}
+
+export async function getMathReturns(symbol: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/distribution/returns/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch returns');
+  return res.json();
+}
+
+export async function getMathNormality(symbol: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/distribution/normality/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch normality');
+  return res.json();
+}
+
+export async function getMathSkewnessKurtosis(symbol: string, window = 60): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/distribution/skewness-kurtosis/${symbol}?window=${window}`);
+  if (!res.ok) throw new Error('Failed to fetch skewness-kurtosis');
+  return res.json();
+}
+
+export async function getMathHistoricalVol(symbol: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/volatility/historical/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch historical vol');
+  return res.json();
+}
+
+export async function getMathVaR(symbol: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/volatility/var/${symbol}?days=${days}&confidence=0.95`);
+  if (!res.ok) throw new Error('Failed to fetch VaR');
+  return res.json();
+}
+
+export async function getMathMonteCarlo(symbol: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/volatility/monte-carlo/${symbol}?days=${days}&simulations=100&horizon=252`);
+  if (!res.ok) throw new Error('Failed to fetch Monte Carlo');
+  return res.json();
+}
+
+export async function getMathDrawdown(symbol: string, days = 500): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/volatility/drawdown/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch drawdown');
+  return res.json();
+}
+
+export async function getMathACF(symbol: string, days = 252, lag = 40): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/time-series/acf/${symbol}?days=${days}&lag=${lag}`);
+  if (!res.ok) throw new Error('Failed to fetch ACF');
+  return res.json();
+}
+
+export async function getMathHurst(symbol: string, days = 500): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/time-series/hurst/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch Hurst');
+  return res.json();
+}
+
+export async function getMathStationarity(symbol: string, days = 500): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/time-series/stationarity/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch stationarity');
+  return res.json();
+}
+
+export async function getMathEntropy(symbol: string, days = 500, window = 60): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/time-series/entropy/${symbol}?days=${days}&window=${window}`);
+  if (!res.ok) throw new Error('Failed to fetch entropy');
+  return res.json();
+}
+
+export async function getMathFourier(symbol: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/advanced/fourier/${symbol}?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch Fourier');
+  return res.json();
+}
+
+export async function getMathZScore(symbol: string, days = 500, window = 20): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/advanced/zscore/${symbol}?days=${days}&window=${window}`);
+  if (!res.ok) throw new Error('Failed to fetch Z-score');
+  return res.json();
+}
+
+export async function getMathPortfolio(symbols: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/advanced/portfolio?symbols=${symbols}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch portfolio');
+  return res.json();
+}
+
+export async function getMathFrontier(symbol: string, benchmark = 'SPY', days = 502): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/advanced/efficient-frontier/${symbol}?benchmark=${benchmark}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch efficient frontier');
+  return res.json();
+}
+
+export async function getMathPCA(symbols: string, days = 252): Promise<any> {
+  const res = await fetch(`${API_BASE}/math/advanced/pca?symbols=${symbols}&days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch PCA');
+  return res.json();
+}

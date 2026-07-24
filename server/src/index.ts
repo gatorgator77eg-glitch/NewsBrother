@@ -31,6 +31,12 @@ import { smartVelocityRoutes } from './routes/smartVelocity';
 import { smartImpactRoutes } from './routes/smartImpact';
 import { smartLeadLagRoutes } from './routes/smartLeadLag';
 import { smartHeatmapRoutes } from './routes/smartHeatmap';
+import { mathRegressionRoutes } from './routes/mathRegression';
+import { mathCorrelationRoutes } from './routes/mathCorrelation';
+import { mathDistributionRoutes } from './routes/mathDistribution';
+import { mathVolatilityRoutes } from './routes/mathVolatility';
+import { mathTimeSeriesRoutes } from './routes/mathTimeSeries';
+import { mathAdvancedRoutes } from './routes/mathAdvanced';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -81,6 +87,12 @@ app.use('/api/smart/velocity', smartVelocityRoutes);
 app.use('/api/smart/impact', smartImpactRoutes);
 app.use('/api/smart/lead-lag', smartLeadLagRoutes);
 app.use('/api/smart/heatmap', smartHeatmapRoutes);
+app.use('/api/math/regression', mathRegressionRoutes);
+app.use('/api/math/correlation', mathCorrelationRoutes);
+app.use('/api/math/distribution', mathDistributionRoutes);
+app.use('/api/math/volatility', mathVolatilityRoutes);
+app.use('/api/math/time-series', mathTimeSeriesRoutes);
+app.use('/api/math/advanced', mathAdvancedRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {
