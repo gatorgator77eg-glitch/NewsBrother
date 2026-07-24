@@ -620,3 +620,122 @@ export async function setLocalGpuConfig(updates: Record<string, string>): Promis
   if (!res.ok) throw new Error('Failed to save config');
   return res.json();
 }
+
+// ─── Deep Research Types & API ──────────────────────────────────────
+
+export interface DeepResearchResult {
+  query: string;
+  articles: { id: number; url: string; title: string; domain: string; source_country: string; published_at: string; tone: number; goldsteinscale: number }[];
+  timeline: { date: string; avgTone: number; count: number }[];
+  tickers: { symbol: string; mentions: number; name: string; sector: string }[];
+  priceData: Record<string, { date: string; close: number; volume: number }[]>;
+  domains: { domain: string; count: number }[];
+  countries: { country: string; count: number }[];
+  toneOverview: { avg: number; min: number; max: number; positive: number; negative: number; neutral: number };
+  totalArticles: number;
+}
+
+export async function runDeepResearch(query: string, dateFrom?: string, dateTo?: string, sources?: string[], limit?: number): Promise<DeepResearchResult> {
+  const res = await fetch(`${API_BASE}/deep-research/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, dateFrom, dateTo, sources, limit }),
+  });
+  if (!res.ok) throw new Error('Deep research query failed');
+  return res.json();
+}
+
+export async function getDeepResearchSuggestions(): Promise<{ suggestions: string[] }> {
+  const res = await fetch(`${API_BASE}/deep-research/suggestions`);
+  if (!res.ok) throw new Error('Failed to get suggestions');
+  return res.json();
+}
+
+// ─── Correlation Types & API ────────────────────────────────────────
+
+export interface CorrelationResult {
+  ticker: { symbol: string; name: string; sector: string };
+  correlation: number;
+  pValue: number;
+  sampleSize: number;
+  lagged: { lag: number; correlation: number }[];
+  aligned: { date: string; tone: number; toneCount: number; close: number; dailyReturn: number }[];
+  toneBreakdown: { positive: number; negative: number; neutral: number; total: number };
+  days: number;
+}
+
+export interface CorrelationHeatmapEntry {
+  sector: string;
+  avgTone: number;
+  avgPriceChange: number;
+  articleCount: number;
+  correlation: number;
+}
+
+export interface NarrativeStrengthResult {
+  daily: { date: string; count: number; avgTone: number; smoothedCount: number; smoothedTone: number }[];
+  summary: { totalArticles: number; avgTone: number; narrativeVolatility: number; volumeTrendPct: number; days: number };
+  extremes: { date: string; avgTone: number; count: number }[];
+}
+
+export async function getCorrelationTicker(symbol: string, days?: number): Promise<CorrelationResult> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/correlation/ticker/${symbol}${q}`);
+  if (!res.ok) throw new Error('Failed to get correlation');
+  return res.json();
+}
+
+export async function getCorrelationHeatmap(days?: number): Promise<{ heatmap: CorrelationHeatmapEntry[]; days: number }> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/correlation/heatmap${q}`);
+  if (!res.ok) throw new Error('Failed to get correlation heatmap');
+  return res.json();
+}
+
+export async function getNarrativeStrength(days?: number): Promise<NarrativeStrengthResult> {
+  const q = days ? `?days=${days}` : '';
+  const res = await fetch(`${API_BASE}/correlation/narrative-strength${q}`);
+  if (!res.ok) throw new Error('Failed to get narrative strength');
+  return res.json();
+}
+
+// ─── Health API ─────────────────────────────────────────────────────
+
+export interface HealthStatus {
+  status: string;
+  timestamp: string;
+  news: { articles: number; latestArticle: string | null; sources: number };
+  archive: { articles: number; latestArticle: string | null };
+  stocks: { tickers: number; priceRows: number };
+  lastIngest: string | null;
+}
+
+export async function getHealth(): Promise<HealthStatus> {
+  const res = await fetch(`${API_BASE}/health`);
+  if (!res.ok) throw new Error('Failed to get health');
+  return res.json();
+}
+
+// ─── Export URLs ────────────────────────────────────────────────────
+
+export function getExportNewsArchiveUrl(query?: string, dateFrom?: string, dateTo?: string): string {
+  const params = new URLSearchParams();
+  if (query) params.set('query', query);
+  if (dateFrom) params.set('dateFrom', dateFrom);
+  if (dateTo) params.set('dateTo', dateTo);
+  return `${API_BASE}/export/news-archive?${params}`;
+}
+
+export function getExportStockPricesUrl(symbol: string, days?: number): string {
+  const q = days ? `?days=${days}` : '';
+  return `${API_BASE}/export/stock-prices/${symbol}${q}`;
+}
+
+export function getExportCorrelationUrl(symbol: string, days?: number): string {
+  const q = days ? `?days=${days}` : '';
+  return `${API_BASE}/export/correlation/${symbol}${q}`;
+}
+
+export function getExportDashboardSummaryUrl(): string {
+  return `${API_BASE}/export/dashboard-summary`;
+}

@@ -5,6 +5,7 @@ import {
   type HeatmapEntry, type DivergenceEntry, type EchoLeader, type EchoDomain,
   type RadarTicker, type PolarizedDomain, type ShockwaveMover, type CredibilityEntry,
 } from '../api';
+import DeepResearch from './DeepResearch';
 
 type Tab = 'command-center' | 'echo-chamber' | 'volatility-radar' | 'shockwave' | 'credibility' | 'deep-research';
 
@@ -170,7 +171,7 @@ export default function Janus({ onBack }: Props) {
           onSectorChange={setCredSector}
         />
       )}
-      {!loading && tab === 'deep-research' && <DeepResearchViz />}
+      {!loading && tab === 'deep-research' && <DeepResearch onBack={() => setTab('command-center')} />}
     </div>
   );
 }
@@ -675,29 +676,6 @@ function CredibilityViz({ data, sectors, sector, onSectorChange }: {
           </table>
         </div>
         {data.length === 0 && <p className="text-sm text-gray-400 py-8 text-center">No stock data available — download prices first</p>}
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════
-// 6. DEEP RESEARCH (placeholder)
-// ═══════════════════════════════════════════
-function DeepResearchViz() {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 text-center">
-      <div className="text-4xl mb-4">🔬</div>
-      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Deep Research Sandbox</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-        Interactive sandbox for running custom queries across news archives, price data,
-        and cross-referencing multiple data sources. Coming in Phase 2.
-      </p>
-      <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto">
-        {['Custom Queries', 'Multi-Source Fusion', 'Export Reports'].map(f => (
-          <div key={f} className="rounded-xl bg-gray-50 dark:bg-gray-700/50 p-3 border border-dashed border-gray-200 dark:border-gray-600">
-            <div className="text-xs text-gray-400 dark:text-gray-500">{f}</div>
-          </div>
-        ))}
       </div>
     </div>
   );

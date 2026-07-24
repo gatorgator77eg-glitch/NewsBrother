@@ -42,6 +42,16 @@ const MENU_GROUPS: (MenuItem | MenuGroup | { divider: string })[] = [
     ],
   },
   {
+    id: 'correlation',
+    label: 'Correlation',
+    icon: '📈',
+    children: [
+      { id: 'corr-ticker', label: 'Ticker Analysis', icon: '🎯', action: 'correlation' },
+      { id: 'corr-heatmap', label: 'Sector Heatmap', icon: '🗺️', action: 'correlation' },
+      { id: 'corr-narrative', label: 'Narrative Strength', icon: '📊', action: 'correlation' },
+    ],
+  },
+  {
     id: 'janus',
     label: 'Janus',
     icon: '👁️',

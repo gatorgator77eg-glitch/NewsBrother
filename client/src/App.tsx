@@ -22,6 +22,8 @@ import NewsArchive from './components/NewsArchive';
 import Janus from './components/Janus';
 import Sentiment from './components/Sentiment';
 import LocalGPU from './components/LocalGPU';
+import CorrelationEngine from './components/CorrelationEngine';
+import HealthIndicator from './components/HealthIndicator';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
 import type { StoryNode } from '../../shared/types';
 
@@ -61,6 +63,7 @@ export default function App() {
   const [showJanus, setShowJanus] = useState(false);
   const [showSentiment, setShowSentiment] = useState(false);
   const [showLocalGpu, setShowLocalGpu] = useState(false);
+  const [showCorrelation, setShowCorrelation] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -159,6 +162,7 @@ export default function App() {
     setShowJanus(false);
     setShowSentiment(false);
     setShowLocalGpu(false);
+    setShowCorrelation(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -228,6 +232,10 @@ export default function App() {
         hideAll();
         setShowLocalGpu(true);
         break;
+      case 'correlation':
+        hideAll();
+        setShowCorrelation(true);
+        break;
     }
   };
 
@@ -263,7 +271,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -334,6 +342,12 @@ export default function App() {
       </header>
 
       <main className="max-w-[1800px] mx-auto px-4 py-6">
+        {isHomePage && !loaded && (
+          <div className="mb-4 flex justify-center">
+            <HealthIndicator />
+          </div>
+        )}
+
         {showFeeds && (
           <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
             <FeedManager />
@@ -369,6 +383,8 @@ export default function App() {
           <Sentiment onBack={() => setShowSentiment(false)} />
         ) : showLocalGpu ? (
           <LocalGPU onBack={() => setShowLocalGpu(false)} />
+        ) : showCorrelation ? (
+          <CorrelationEngine onBack={() => setShowCorrelation(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}
