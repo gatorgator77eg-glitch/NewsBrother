@@ -151,6 +151,7 @@ export default function App() {
   };
 
   const hideAll = () => {
+    setShowFeeds(false);
     setShowSettings(false);
     setShowCoverage(false);
     setShowSearch(false);

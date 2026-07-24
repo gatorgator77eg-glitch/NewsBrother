@@ -22,6 +22,7 @@ import { localgpuRoutes } from './routes/localgpu';
 import { deepResearchRoutes } from './routes/deepResearch';
 import { correlationRoutes } from './routes/correlation';
 import { exportRoutes } from './routes/export';
+import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
 import { clusterArticles } from './clustering';
@@ -66,46 +67,26 @@ app.use('/api/export', exportRoutes);
 app.get('/api/health', async (_req, res) => {
   try {
     const newsDb = await getDb();
-    const { getNewsArchiveDb } = await import('./newsArchive/db');
     const archiveDb = await getNewsArchiveDb();
-    const { getStockDb } = await import('./stocks/db');
-    const stockDb = await getStockDb();
 
     const newsCount = newsDb.exec('SELECT COUNT(*) FROM articles')[0]?.values[0]?.[0] || 0;
     const archiveCount = archiveDb.exec('SELECT COUNT(*) FROM news_archive')[0]?.values[0]?.[0] || 0;
     const latestArticle = newsDb.exec('SELECT MAX(published_at) FROM articles')[0]?.values[0]?.[0] || null;
     const latestArchive = archiveDb.exec('SELECT MAX(published_at) FROM news_archive')[0]?.values[0]?.[0] || null;
     const sourceCount = newsDb.exec('SELECT COUNT(*) FROM sources')[0]?.values[0]?.[0] || 0;
-    const tickerCount = stockDb.exec('SELECT COUNT(*) FROM stock_tickers')[0]?.values[0]?.[0] || 0;
-    const priceCount = stockDb.exec('SELECT COUNT(*) FROM stock_prices')[0]?.values[0]?.[0] || 0;
 
-    // Last ingestion run
     const lastIngestMeta = newsDb.exec("SELECT value FROM meta WHERE key = 'last_ingest'")[0]?.values[0]?.[0] || null;
 
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
-      news: {
-        articles: newsCount,
-        latestArticle,
-        sources: sourceCount,
-      },
-      archive: {
-        articles: archiveCount,
-        latestArticle: latestArchive,
-      },
-      stocks: {
-        tickers: tickerCount,
-        priceRows: priceCount,
-      },
+      news: { articles: newsCount, latestArticle, sources: sourceCount },
+      archive: { articles: archiveCount, latestArticle: latestArchive },
+      stocks: { tickers: 0, priceRows: 0 },
       lastIngest: lastIngestMeta,
     });
   } catch (err: any) {
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      error: err.message,
-    });
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), error: err.message });
   }
 });
 
