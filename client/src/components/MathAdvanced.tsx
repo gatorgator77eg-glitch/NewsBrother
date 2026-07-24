@@ -65,10 +65,12 @@ export default function MathAdvanced({ onBack }: { onBack: () => void }) {
 }
 
 function FourierViz({ data }: { data: any }) {
-  const { topCycles, dominantCycleDays, spectrum } = data;
+  const topCycles = data?.topCycles || [], dominantCycleDays = data?.dominantCycleDays ?? 0;
+  const spectrum = data?.spectrum || [];
+  if (spectrum.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 300, pad = 60;
-  const powers = spectrum.map((s: any) => s.power);
-  const maxP = Math.max(...powers);
+  const powers = spectrum.map((s: any) => s.power ?? 0);
+  const maxP = Math.max(...powers, 1);
   const sx = (i: number) => pad + (i / Math.max(spectrum.length - 1, 1)) * (w - 2 * pad);
   const sy = (v: number) => pad + (1 - v / maxP) * (h - 2 * pad);
   return (
@@ -96,9 +98,11 @@ function FourierViz({ data }: { data: any }) {
 }
 
 function ZScoreViz({ data }: { data: any }) {
-  const { series, current, stats } = data;
+  const series = data?.series || [], current = data?.current ?? null;
+  const stats = data?.stats || {};
+  if (series.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 300, pad = 60;
-  const vals = series.map((s: any) => s.zScore);
+  const vals = series.map((s: any) => s.zScore ?? 0);
   const minV = Math.min(...vals), maxV = Math.max(...vals);
   const sx = (i: number) => pad + (i / Math.max(vals.length - 1, 1)) * (w - 2 * pad);
   const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
@@ -127,10 +131,13 @@ function ZScoreViz({ data }: { data: any }) {
 }
 
 function PortfolioViz({ data }: { data: any }) {
-  const { optimalPortfolio, minVariance, means, vols, frontier } = data;
+  const optimalPortfolio = data?.optimalPortfolio || { return: 0, vol: 0, sharpe: 0, weights: {} };
+  const minVariance = data?.minVariance || { return: 0, vol: 0, sharpe: 0, weights: {} };
+  const frontier = data?.frontier || [];
+  if (frontier.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const rets = frontier.map((p: any) => p.ret);
-  const volsAll = frontier.map((p: any) => p.vol);
+  const rets = frontier.map((p: any) => p.ret ?? 0);
+  const volsAll = frontier.map((p: any) => p.vol ?? 0);
   const minRet = Math.min(...rets), maxRet = Math.max(...rets);
   const minVol = Math.min(...volsAll), maxVol = Math.max(...volsAll);
   const sx = (v: number) => pad + (v - minVol) / Math.max(maxVol - minVol, 0.001) * (w - 2 * pad);
@@ -166,10 +173,14 @@ function PortfolioViz({ data }: { data: any }) {
 }
 
 function FrontierViz({ data }: { data: any }) {
-  const { frontier, alpha, beta, stockReturn, stockVol, benchReturn, benchVol, sharpeStock, sharpeBench } = data;
+  const frontier = data?.frontier || [], alpha = data?.alpha ?? 0, beta = data?.beta ?? 0;
+  const stockReturn = data?.stockReturn ?? 0, stockVol = data?.stockVol ?? 0;
+  const benchReturn = data?.benchReturn ?? 0, benchVol = data?.benchVol ?? 0;
+  const sharpeStock = data?.sharpeStock ?? 0, sharpeBench = data?.sharpeBench ?? 0;
+  if (frontier.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const rets = frontier.map((p: any) => p.expectedReturn);
-  const vols = frontier.map((p: any) => p.volatility);
+  const rets = frontier.map((p: any) => p.expectedReturn ?? 0);
+  const vols = frontier.map((p: any) => p.volatility ?? 0);
   const minRet = Math.min(...rets), maxRet = Math.max(...rets);
   const minVol = Math.min(...vols), maxVol = Math.max(...vols);
   const sx = (v: number) => pad + (v - minVol) / Math.max(maxVol - minVol, 0.001) * (w - 2 * pad);
@@ -209,7 +220,7 @@ function FrontierViz({ data }: { data: any }) {
 }
 
 function PCAViz({ data }: { data: any }) {
-  const { loadings, nComponents } = data;
+  const loadings = data?.loadings || [], nComponents = data?.nComponents ?? 0;
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Principal Component Analysis</h3>

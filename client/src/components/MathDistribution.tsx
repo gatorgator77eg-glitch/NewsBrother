@@ -53,9 +53,13 @@ export default function MathDistribution({ onBack }: { onBack: () => void }) {
 }
 
 function ReturnsViz({ data }: { data: any }) {
-  const { histogram, mean, std, skewness, kurtosis, positivePct, bestDay, worstDay, annualizedReturn, annualizedVol } = data;
+  const histogram = data?.histogram || [], mean = data?.mean ?? 0, std = data?.std ?? 0;
+  const skewness = data?.skewness ?? 0, kurtosis = data?.kurtosis ?? 0;
+  const positivePct = data?.positivePct ?? 0, bestDay = data?.bestDay ?? 0, worstDay = data?.worstDay ?? 0;
+  const annualizedReturn = data?.annualizedReturn ?? 0, annualizedVol = data?.annualizedVol ?? 0;
+  if (histogram.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const maxCount = Math.max(...histogram.map((b: any) => Math.max(b.count, b.normalDensity)));
+  const maxCount = Math.max(...histogram.map((b: any) => Math.max(b.count ?? 0, b.normalDensity ?? 0)), 1);
   const barW = (w - 2 * pad) / histogram.length;
   return (
     <div className="bg-gray-800 rounded-lg p-4">
@@ -96,7 +100,10 @@ function ReturnsViz({ data }: { data: any }) {
 }
 
 function NormalViz({ data }: { data: any }) {
-  const { jarqueBera, andersonDarling, moments, percentiles, conclusion } = data;
+  const jarqueBera = data?.jarqueBera || { statistic: 0, isNormal: false };
+  const andersonDarling = data?.andersonDarling || { statistic: 0, isNormal: false };
+  const percentiles = data?.percentiles || [];
+  const conclusion = data?.conclusion ?? 'Unknown';
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Normality Tests — {data.symbol}</h3>
@@ -129,10 +136,13 @@ function NormalViz({ data }: { data: any }) {
 }
 
 function SkewKurtViz({ data }: { data: any }) {
-  const { series, avgSkew, avgKurt, currentSkew, currentKurt, interpretation } = data;
+  const series = data?.series || [], avgSkew = data?.avgSkew ?? 0, avgKurt = data?.avgKurt ?? 0;
+  const currentSkew = data?.currentSkew ?? 0, currentKurt = data?.currentKurt ?? 0;
+  const interpretation = data?.interpretation || {};
+  if (series.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 300, pad = 60;
-  const skews = series.map((s: any) => s.skewness);
-  const kurts = series.map((s: any) => s.kurtosis);
+  const skews = series.map((s: any) => s.skewness ?? 0);
+  const kurts = series.map((s: any) => s.kurtosis ?? 0);
   const allV = [...skews, ...kurts];
   const minV = Math.min(...allV), maxV = Math.max(...allV);
   const sx = (i: number) => pad + (i / Math.max(series.length - 1, 1)) * (w - 2 * pad);

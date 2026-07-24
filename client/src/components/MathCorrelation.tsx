@@ -68,7 +68,8 @@ export default function MathCorrelation({ onBack }: { onBack: () => void }) {
 }
 
 function MatrixViz({ data }: { data: any }) {
-  const { symbols, matrix } = data;
+  const symbols = data?.symbols || [], matrix = data?.matrix || {};
+  if (symbols.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const n = symbols.length;
   const cellSize = 60;
   const pad = 80;
@@ -101,13 +102,15 @@ function MatrixViz({ data }: { data: any }) {
 }
 
 function BetaViz({ data }: { data: any }) {
+  const beta = data?.beta ?? 0, alpha = data?.alpha ?? 0, sharpe = data?.sharpe ?? 0;
+  const treynor = data?.treynor ?? 0, informationRatio = data?.informationRatio ?? 0, correlation = data?.correlation ?? 0;
   const metrics = [
-    { label: 'Beta', value: data.beta.toFixed(3), color: Math.abs(data.beta) > 1 ? 'text-yellow-400' : 'text-blue-400' },
-    { label: 'Alpha (ann.)', value: `${(data.alpha * 100).toFixed(2)}%`, color: data.alpha > 0 ? 'text-green-400' : 'text-red-400' },
-    { label: 'Sharpe', value: data.sharpe.toFixed(3), color: data.sharpe > 1 ? 'text-green-400' : 'text-gray-400' },
-    { label: 'Treynor', value: data.treynor.toFixed(4), color: 'text-blue-400' },
-    { label: 'Info Ratio', value: data.informationRatio.toFixed(3), color: data.informationRatio > 0 ? 'text-green-400' : 'text-red-400' },
-    { label: 'Correlation', value: data.correlation.toFixed(4), color: 'text-purple-400' },
+    { label: 'Beta', value: beta.toFixed(3), color: Math.abs(beta) > 1 ? 'text-yellow-400' : 'text-blue-400' },
+    { label: 'Alpha (ann.)', value: `${(alpha * 100).toFixed(2)}%`, color: alpha > 0 ? 'text-green-400' : 'text-red-400' },
+    { label: 'Sharpe', value: sharpe.toFixed(3), color: sharpe > 1 ? 'text-green-400' : 'text-gray-400' },
+    { label: 'Treynor', value: treynor.toFixed(4), color: 'text-blue-400' },
+    { label: 'Info Ratio', value: informationRatio.toFixed(3), color: informationRatio > 0 ? 'text-green-400' : 'text-red-400' },
+    { label: 'Correlation', value: correlation.toFixed(4), color: 'text-purple-400' },
   ];
   return (
     <div className="bg-gray-800 rounded-lg p-4">
@@ -126,12 +129,12 @@ function BetaViz({ data }: { data: any }) {
 
 function CointViz({ data }: { data: any }) {
   const w = 800, h = 250, pad = 50;
-  const res = data.residuals || [];
-  const vals = res.map((r: any) => r.residual);
-  if (vals.length === 0) return <div className="bg-gray-800 rounded-lg p-4">No data</div>;
+  const res = data?.residuals || [];
+  const vals = res.map((r: any) => r.residual ?? 0);
+  if (vals.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data</div>;
   const minV = Math.min(...vals), maxV = Math.max(...vals);
-  const sx = (i: number) => pad + (i / (res.length - 1)) * (w - 2 * pad);
-  const sy = (v: number) => pad + (1 - (v - minV) / (maxV - minV)) * (h - 2 * pad);
+  const sx = (i: number) => pad + (i / Math.max(res.length - 1, 1)) * (w - 2 * pad);
+  const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Cointegration — {data.symbol1} vs {data.symbol2}</h3>
@@ -149,18 +152,20 @@ function CointViz({ data }: { data: any }) {
 }
 
 function GrangerViz({ data }: { data: any }) {
+  const cause = data?.cause ?? 'N/A', symbol = data?.symbol ?? 'N/A', conclusion = data?.conclusion ?? '';
+  const results = data?.results || [];
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <h3 className="text-lg font-semibold mb-3">Granger Causality — {data.cause} → {data.symbol}</h3>
-      <div className="bg-gray-900 rounded p-3 mb-4 text-sm text-gray-300">{data.conclusion}</div>
+      <h3 className="text-lg font-semibold mb-3">Granger Causality — {cause} → {symbol}</h3>
+      <div className="bg-gray-900 rounded p-3 mb-4 text-sm text-gray-300">{conclusion}</div>
       <div className="bg-gray-900 rounded p-4">
         <table className="w-full text-sm">
           <thead><tr className="text-gray-400 border-b border-gray-700"><th className="py-2 text-left">Lag</th><th className="py-2 text-left">F-Stat</th><th className="py-2 text-left">Significant</th></tr></thead>
           <tbody>
-            {(data.results || []).map((r: any) => (
+            {results.map((r: any) => (
               <tr key={r.lag} className="border-b border-gray-700/50">
                 <td className="py-2 text-gray-300">{r.lag}</td>
-                <td className="py-2 text-blue-400 font-mono">{r.fStat.toFixed(4)}</td>
+                <td className="py-2 text-blue-400 font-mono">{(r.fStat ?? 0).toFixed(4)}</td>
                 <td className="py-2">{r.significant ? <span className="text-green-400">✓ Yes (p&lt;0.05)</span> : <span className="text-gray-500">No</span>}</td>
               </tr>
             ))}

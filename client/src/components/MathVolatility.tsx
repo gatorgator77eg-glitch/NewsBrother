@@ -55,14 +55,15 @@ export default function MathVolatility({ onBack }: { onBack: () => void }) {
 }
 
 function HistVolViz({ data }: { data: any }) {
-  const { series, latestVol, windows } = data;
+  const series = data?.series || {}, latestVol = data?.latestVol ?? 0, windows = data?.windows || [];
+  const allVals = Object.values(series).flat().map((s: any) => s?.volatility ?? 0);
+  if (allVals.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 350, pad = 60;
-  const allVals = Object.values(series).flat().map((s: any) => s.volatility);
   const minV = Math.min(...allVals), maxV = Math.max(...allVals);
   const colors = ['#3B82F6', '#10B981', '#F59E0B'];
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <h3 className="text-lg font-semibold mb-3">Historical Volatility — {data.symbol}</h3>
+      <h3 className="text-lg font-semibold mb-3">Historical Volatility — {data?.symbol ?? ''}</h3>
       <div className="bg-gray-900 rounded p-3 mb-3"><span className="text-gray-400 text-sm">Latest Vol (20d): </span><span className="text-lg font-bold text-yellow-400">{(latestVol * 100).toFixed(1)}%</span></div>
       <svg viewBox={`0 0 ${w} ${h}`} className="w-full">
         <line x1={pad} y1={pad} x2={pad} y2={h - pad} stroke="#4B5563" strokeWidth="1" />
@@ -81,17 +82,22 @@ function HistVolViz({ data }: { data: any }) {
 }
 
 function VaRViz({ data }: { data: any }) {
+  const historicalVaR = data?.historicalVaR ?? 0, parametricVaR = data?.parametricVaR ?? 0;
+  const historicalCVaR = data?.historicalCVaR ?? 0, hpVaR = data?.hpVaR ?? 0;
+  const historicalVaRDollar = data?.historicalVaRDollar ?? 0, parametricVaRDollar = data?.parametricVaRDollar ?? 0;
+  const hpVaRDollar = data?.hpVaRDollar ?? 0;
+  const stats = data?.stats || { min: 0 };
   const metrics = [
-    { label: 'Historical VaR (95%)', value: `${(data.historicalVaR * 100).toFixed(2)}%`, sub: `$${Math.abs(data.historicalVaRDollar).toLocaleString()}`, color: 'text-red-400' },
-    { label: 'Parametric VaR', value: `${(data.parametricVaR * 100).toFixed(2)}%`, sub: `$${Math.abs(data.parametricVaRDollar).toLocaleString()}`, color: 'text-orange-400' },
-    { label: 'Historical CVaR', value: `${(data.historicalCVaR * 100).toFixed(2)}%`, sub: 'Expected shortfall', color: 'text-red-500' },
-    { label: 'Daily VaR', value: `${(data.historicalVaR * 100).toFixed(2)}%`, sub: `1-day horizon`, color: 'text-yellow-400' },
-    { label: 'Weekly VaR', value: `${(data.hpVaR * 100).toFixed(2)}%`, sub: `$${Math.abs(data.hpVaRDollar).toLocaleString()}`, color: 'text-orange-500' },
-    { label: 'Worst Day', value: `${(data.stats.min * 100).toFixed(2)}%`, sub: '', color: 'text-red-400' },
+    { label: 'Historical VaR (95%)', value: `${(historicalVaR * 100).toFixed(2)}%`, sub: `$${Math.abs(historicalVaRDollar).toLocaleString()}`, color: 'text-red-400' },
+    { label: 'Parametric VaR', value: `${(parametricVaR * 100).toFixed(2)}%`, sub: `$${Math.abs(parametricVaRDollar).toLocaleString()}`, color: 'text-orange-400' },
+    { label: 'Historical CVaR', value: `${(historicalCVaR * 100).toFixed(2)}%`, sub: 'Expected shortfall', color: 'text-red-500' },
+    { label: 'Daily VaR', value: `${(historicalVaR * 100).toFixed(2)}%`, sub: `1-day horizon`, color: 'text-yellow-400' },
+    { label: 'Weekly VaR', value: `${(hpVaR * 100).toFixed(2)}%`, sub: `$${Math.abs(hpVaRDollar).toLocaleString()}`, color: 'text-orange-500' },
+    { label: 'Worst Day', value: `${((stats.min ?? 0) * 100).toFixed(2)}%`, sub: '', color: 'text-red-400' },
   ];
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <h3 className="text-lg font-semibold mb-3">Value at Risk — {data.symbol}</h3>
+      <h3 className="text-lg font-semibold mb-3">Value at Risk — {data?.symbol ?? ''}</h3>
       <div className="grid grid-cols-3 gap-3">
         {metrics.map(m => (
           <div key={m.label} className="bg-gray-900 rounded p-3 text-center">
@@ -106,15 +112,18 @@ function VaRViz({ data }: { data: any }) {
 }
 
 function MCViz({ data }: { data: any }) {
-  const { paths, percentiles, stats, lastPrice, horizon } = data;
+  const paths = data?.paths || [], percentiles = data?.percentiles || [];
+  const stats = data?.stats || { mean: 0, probUp: 0, expectedReturn: 0 };
+  const lastPrice = data?.lastPrice ?? 0, horizon = data?.horizon ?? 252;
+  if (percentiles.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const allPrices = percentiles.flatMap((p: any) => [p.p5, p.p95]);
+  const allPrices = percentiles.flatMap((p: any) => [p.p5 ?? 0, p.p95 ?? 0]);
   const minP = Math.min(...allPrices), maxP = Math.max(...allPrices);
-  const sx = (i: number) => pad + (i / horizon) * (w - 2 * pad);
+  const sx = (i: number) => pad + (i / Math.max(horizon, 1)) * (w - 2 * pad);
   const sy = (v: number) => pad + (1 - (v - minP) / Math.max(maxP - minP, 0.01)) * (h - 2 * pad);
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <h3 className="text-lg font-semibold mb-3">Monte Carlo Simulation — {data.symbol}</h3>
+      <h3 className="text-lg font-semibold mb-3">Monte Carlo Simulation — {data?.symbol ?? ''}</h3>
       <div className="grid grid-cols-4 gap-3 mb-4">
         <div className="bg-gray-900 rounded p-2 text-center"><div className="text-xs text-gray-400">Last Price</div><div className="text-sm font-bold text-blue-400">${lastPrice.toFixed(2)}</div></div>
         <div className="bg-gray-900 rounded p-2 text-center"><div className="text-xs text-gray-400">Mean</div><div className="text-sm font-bold text-green-400">${stats.mean.toFixed(2)}</div></div>

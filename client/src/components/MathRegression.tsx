@@ -65,14 +65,17 @@ export default function MathRegression({ onBack }: { onBack: () => void }) {
 }
 
 function LinearViz({ data }: { data: any }) {
-  const { r2, slope, intercept, tStat, se, annualizedReturnPct, trendLine, startDate, endDate } = data;
+  const r2 = data?.r2 ?? 0, slope = data?.slope ?? 0, intercept = data?.intercept ?? 0;
+  const tStat = data?.tStat ?? 0, annualizedReturnPct = data?.annualizedReturnPct ?? 0;
+  const trendLine = data?.trendLine || [], startDate = data?.startDate ?? '', endDate = data?.endDate ?? '';
+  if (trendLine.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const prices = trendLine.map((d: any) => d.actual);
-  const preds = trendLine.map((d: any) => d.predicted);
+  const prices = trendLine.map((d: any) => d.actual ?? 0);
+  const preds = trendLine.map((d: any) => d.predicted ?? 0);
   const allVals = [...prices, ...preds];
   const minV = Math.min(...allVals), maxV = Math.max(...allVals);
-  const scaleX = (i: number) => pad + (i / (trendLine.length - 1)) * (w - 2 * pad);
-  const scaleY = (v: number) => pad + (1 - (v - minV) / (maxV - minV)) * (h - 2 * pad);
+  const scaleX = (i: number) => pad + (i / Math.max(trendLine.length - 1, 1)) * (w - 2 * pad);
+  const scaleY = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
 
   return (
     <div className="bg-gray-800 rounded-lg p-4">
@@ -106,14 +109,16 @@ function LinearViz({ data }: { data: any }) {
 }
 
 function ExpViz({ data }: { data: any }) {
-  const { growthRate, baseValue, r2, fitLine } = data;
+  const growthRate = data?.growthRate ?? 0, baseValue = data?.baseValue ?? 0, r2 = data?.r2 ?? 0;
+  const fitLine = data?.fitLine || [];
+  if (fitLine.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const prices = fitLine.map((d: any) => d.actual);
-  const preds = fitLine.map((d: any) => d.predicted);
+  const prices = fitLine.map((d: any) => d.actual ?? 0);
+  const preds = fitLine.map((d: any) => d.predicted ?? 0);
   const allV = [...prices, ...preds];
   const minV = Math.min(...allV), maxV = Math.max(...allV);
-  const sx = (i: number) => pad + (i / (fitLine.length - 1)) * (w - 2 * pad);
-  const sy = (v: number) => pad + (1 - (v - minV) / (maxV - minV)) * (h - 2 * pad);
+  const sx = (i: number) => pad + (i / Math.max(fitLine.length - 1, 1)) * (w - 2 * pad);
+  const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
   const dailyGrowth = Math.exp(growthRate) - 1;
   return (
     <div className="bg-gray-800 rounded-lg p-4">
@@ -133,14 +138,16 @@ function ExpViz({ data }: { data: any }) {
 }
 
 function PolyViz({ data }: { data: any }) {
-  const { degree, r2, fitLine, coefficients } = data;
+  const degree = data?.degree ?? 0, r2 = data?.r2 ?? 0;
+  const fitLine = data?.fitLine || [], coefficients = data?.coefficients || [];
+  if (fitLine.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 400, pad = 60;
-  const prices = fitLine.map((d: any) => d.actual);
-  const preds = fitLine.map((d: any) => d.predicted);
+  const prices = fitLine.map((d: any) => d.actual ?? 0);
+  const preds = fitLine.map((d: any) => d.predicted ?? 0);
   const allV = [...prices, ...preds];
   const minV = Math.min(...allV), maxV = Math.max(...allV);
-  const sx = (i: number) => pad + (i / (fitLine.length - 1)) * (w - 2 * pad);
-  const sy = (v: number) => pad + (1 - (v - minV) / (maxV - minV)) * (h - 2 * pad);
+  const sx = (i: number) => pad + (i / Math.max(fitLine.length - 1, 1)) * (w - 2 * pad);
+  const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Polynomial (Degree {degree}) — {data.symbol}</h3>
@@ -158,12 +165,14 @@ function PolyViz({ data }: { data: any }) {
 }
 
 function TrendViz({ data }: { data: any }) {
-  const { trendSlopes, currentSlope, avgSlope, stdSlope, trend, window } = data;
+  const trendSlopes = data?.trendSlopes || [], currentSlope = data?.currentSlope ?? 0;
+  const avgSlope = data?.avgSlope ?? 0, trend = data?.trend ?? 'neutral', window = data?.window ?? 20;
+  if (trendSlopes.length === 0) return <div className="bg-gray-800 rounded-lg p-4 text-gray-400">No data available</div>;
   const w = 800, h = 300, pad = 60;
-  const vals = trendSlopes.map((s: any) => s.slope);
+  const vals = trendSlopes.map((s: any) => s.slope ?? 0);
   const minV = Math.min(...vals), maxV = Math.max(...vals);
-  const sx = (i: number) => pad + (i / (vals.length - 1)) * (w - 2 * pad);
-  const sy = (v: number) => pad + (1 - (v - minV) / (maxV - minV)) * (h - 2 * pad);
+  const sx = (i: number) => pad + (i / Math.max(vals.length - 1, 1)) * (w - 2 * pad);
+  const sy = (v: number) => pad + (1 - (v - minV) / Math.max(maxV - minV, 0.001)) * (h - 2 * pad);
   const trendColor = trend.includes('up') ? '#22C55E' : trend === 'neutral' ? '#EAB308' : '#EF4444';
   const trendLabel = trend.replace('_', ' ').toUpperCase();
   return (
