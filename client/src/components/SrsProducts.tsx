@@ -216,6 +216,7 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
   const [refreshing, setRefreshing] = useState(false);
   const [navRefreshing, setNavRefreshing] = useState(false);
   const [navStatus, setNavStatus] = useState<string | null>(null);
+  const [selectedFund, setSelectedFund] = useState<{ isin: string; name: string } | null>(null);
 
   const loadProducts = () => {
     fetch('/api/srs/products').then(r => r.json()).then((prodData: ProductsResponse) => {
@@ -541,6 +542,25 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
             )}
           </div>
 
+          {/* ── Price Chart (standalone when fund selected) ─────── */}
+          {selectedFund && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden mb-4">
+              <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Price Evolution — {selectedFund.name}</h3>
+                  <p className="text-[10px] text-gray-400 font-mono">{selectedFund.isin}</p>
+                </div>
+                <button onClick={() => setSelectedFund(null)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="px-5 py-3">
+                <NavChart isin={selectedFund.isin} fundName={selectedFund.name} />
+              </div>
+            </div>
+          )}
+
           {/* Product Cards */}
           <div className="space-y-2">
             {filtered.map(p => (
@@ -562,6 +582,16 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
                         {p.isin && <><span>·</span><span className="font-mono">{p.isin}</span></>}
                       </div>
                     </div>
+                    {p.isin && (
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedFund(selectedFund?.isin === p.isin ? null : { isin: p.isin!, name: p.name }); }}
+                        className={`px-2 py-1 text-[10px] rounded-lg font-medium transition-colors flex-shrink-0 ${
+                          selectedFund?.isin === p.isin
+                            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400'
+                        }`}>
+                        Price
+                      </button>
+                    )}
                     <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${expandedId === p.id ? 'rotate-180' : ''}`}
                       fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </div>
@@ -579,7 +609,6 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
                         </a>
                       )}
                     </div>
-                    {p.isin && <NavChart isin={p.isin} fundName={p.name} />}
                   </div>
                 )}
               </div>
