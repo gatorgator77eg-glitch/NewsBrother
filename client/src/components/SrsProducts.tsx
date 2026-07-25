@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 interface SrsProduct {
   id: string;
@@ -542,30 +542,29 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
             )}
           </div>
 
-          {/* ── Price Chart (standalone when fund selected) ─────── */}
-          {selectedFund && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden mb-4">
-              <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Price Evolution — {selectedFund.name}</h3>
-                  <p className="text-[10px] text-gray-400 font-mono">{selectedFund.isin}</p>
-                </div>
-                <button onClick={() => setSelectedFund(null)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-              <div className="px-5 py-3">
-                <NavChart isin={selectedFund.isin} fundName={selectedFund.name} />
-              </div>
-            </div>
-          )}
-
           {/* Product Cards */}
           <div className="space-y-2">
             {filtered.map(p => (
-              <div key={p.id}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+              <React.Fragment key={p.id}>
+                {selectedFund?.isin === p.isin && (
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden border border-blue-200 dark:border-blue-800">
+                    <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Price Evolution — {selectedFund?.name}</h3>
+                        <p className="text-[10px] text-gray-400 font-mono">{selectedFund?.isin}</p>
+                      </div>
+                      <button onClick={() => setSelectedFund(null)}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                    <div className="px-5 py-3">
+                      <NavChart isin={selectedFund!.isin} fundName={selectedFund!.name} />
+                    </div>
+                  </div>
+                )}
+                <div
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 <button onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
                   className="w-full text-left p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -611,7 +610,8 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+              </React.Fragment>
             ))}
             {filtered.length === 0 && (
               <div className="text-center py-12 text-gray-400">
