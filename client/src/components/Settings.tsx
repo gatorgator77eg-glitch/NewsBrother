@@ -247,7 +247,9 @@ export default function Settings({ onBack }: Props) {
           body: JSON.stringify({ feeds: items, mode: 'upsert' }),
         });
         const result = await res.json();
+        if (!res.ok) { setFeedError(result.error || 'Import failed'); return; }
         alert(`Imported ${result.imported} of ${result.total} feeds (${result.skipped} skipped)`);
+        setFeedError(null);
         fetchFeeds();
       } else {
         const items = Array.isArray(data) ? data : data.configs || [];
