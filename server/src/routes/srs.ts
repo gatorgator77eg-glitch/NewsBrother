@@ -1257,32 +1257,71 @@ function storeNavHistory(isin: string, rows: { date: string; nav: number; volume
   scheduleSrsDbSave();
 }
 
+// Cache ISIN → Yahoo symbol for SG unit trusts (not directly listed)
+const yahooSymbolCache: Record<string, string> = {};
+
+async function resolveYahooSymbol(isin: string): Promise<string | null> {
+  if (yahooSymbolCache[isin]) return yahooSymbolCache[isin];
+  try {
+    const result = await yf.search(isin);
+    const quotes = (result as any)?.quotes || [];
+    // Prefer mutual funds / ETFs matching the ISIN
+    const match = quotes.find((q: any) =>
+      (q.quoteType === 'MUTUALFUND' || q.quoteType === 'ETF') && q.exchange
+    ) || quotes[0];
+    if (match?.symbol) {
+      yahooSymbolCache[isin] = match.symbol;
+      log.info('Resolved Yahoo symbol', { isin, symbol: match.symbol, name: match.shortname || match.longname });
+      return match.symbol;
+    }
+  } catch (err: any) {
+    log.warn('Yahoo symbol search failed', { isin, error: err.message });
+  }
+  return null;
+}
+
 async function fetchNavFromYahoo(isin: string, period: string): Promise<{ date: string; nav: number }[]> {
   const p = PERIOD_MAP[period] || PERIOD_MAP['1y'];
-  const ticker = `${isin}.SI`;
-  log.info('Fetching NAV from Yahoo', { ticker, period });
-  try {
-    const result = await yf.chart(ticker, {
-      period1: p.period1,
-      period2: new Date(),
-      interval: '1d',
-    });
-    const quotes = (result as any).quotes || [];
-    const navRows = quotes
-      .filter((q: any) => q.close != null)
-      .map((q: any) => ({
-        date: new Date(q.date).toISOString().slice(0, 10),
-        nav: q.close,
-        volume: q.volume || 0,
-      }));
-    if (navRows.length > 0) {
-      storeNavHistory(isin, navRows);
-    }
-    return navRows.map((r: { date: string; nav: number }) => ({ date: r.date, nav: r.nav }));
-  } catch (err: any) {
-    log.warn('Yahoo Finance fetch failed', { ticker, error: err.message });
-    return [];
+
+  // Build candidate ticker list: direct ISIN formats, then search-based resolution
+  const tickers: string[] = [];
+
+  if (isin.startsWith('SG') || isin.startsWith('LU') || !isin.includes('.')) {
+    // SG/LU funds may need symbol lookup
+    const resolved = await resolveYahooSymbol(isin);
+    if (resolved) tickers.push(resolved);
+    // Also try direct formats as fallback
+    tickers.push(`${isin}.SI`, isin);
+  } else {
+    tickers.push(isin);
   }
+
+  for (const ticker of tickers) {
+    log.info('Fetching NAV from Yahoo', { ticker, period });
+    try {
+      const result = await yf.chart(ticker, {
+        period1: p.period1,
+        period2: new Date(),
+        interval: '1d',
+      });
+      const quotes = (result as any).quotes || [];
+      const navRows = quotes
+        .filter((q: any) => q.close != null && q.close > 0)
+        .map((q: any) => ({
+          date: new Date(q.date).toISOString().slice(0, 10),
+          nav: q.close,
+          volume: q.volume || 0,
+        }));
+      if (navRows.length > 0) {
+        storeNavHistory(isin, navRows);
+        return navRows.map((r: { date: string; nav: number }) => ({ date: r.date, nav: r.nav }));
+      }
+    } catch {
+      // Try next ticker format
+    }
+  }
+  log.warn('No NAV data found on Yahoo Finance', { isin });
+  return [];
 }
 
 // ── GET /api/srs/nav/:isin — Historical NAV for a fund ────────────────────

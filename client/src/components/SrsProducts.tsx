@@ -158,7 +158,7 @@ function NavChart({ isin, fundName }: { isin: string; fundName: string }) {
       ) : data.length === 0 ? (
         <div className="py-6 text-center">
           <p className="text-xs text-gray-400">{message || 'No NAV data available for this fund'}</p>
-          <p className="text-[10px] text-gray-400 mt-1">Fund may not be listed on Yahoo Finance</p>
+          <p className="text-[10px] text-gray-400 mt-1">Fund may not be listed on Yahoo Finance. Try "Download NAV Data" to search.</p>
         </div>
       ) : (
         <>
@@ -263,7 +263,7 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
       } else if (data.totalIsins === 0) {
         setNavStatus('No funds with ISINs found. Click "Refresh from DBS" first to scrape the fund list.');
       } else {
-        setNavStatus(`NAV download started for ${data.totalIsins} funds. This runs in the background — check the server logs for progress.`);
+        setNavStatus(`NAV download started for ${data.totalIsins} funds. Yahoo Finance symbol search will resolve SG unit trusts automatically. This runs in the background — check the server logs for progress.`);
       }
     } catch (err: any) {
       setNavStatus(`Failed: ${err.message || 'Network error'}`);

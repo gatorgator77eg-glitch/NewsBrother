@@ -41,6 +41,8 @@ import MathAdvanced from './components/MathAdvanced';
 import SrsProducts from './components/SrsProducts';
 import SrsDashboard from './components/SrsDashboard';
 import SrsAdvisor from './components/SrsAdvisor';
+import StockAdvisor from './components/StockAdvisor';
+import AiHub from './components/AiHub';
 import HelpGuide from './components/HelpGuide';
 import WorldMap from './components/WorldMap';
 import CountrySidebar from './components/CountrySidebar';
@@ -104,6 +106,8 @@ export default function App() {
   const [showSrs, setShowSrs] = useState(false);
   const [showSrsDashboard, setShowSrsDashboard] = useState(false);
   const [showSrsAdvisor, setShowSrsAdvisor] = useState(false);
+  const [showStockAdvisor, setShowStockAdvisor] = useState(false);
+  const [showAi, setShowAi] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const resultsCountRef = useRef(0);
@@ -224,6 +228,8 @@ export default function App() {
     setShowSrs(false);
     setShowSrsDashboard(false);
     setShowSrsAdvisor(false);
+    setShowStockAdvisor(false);
+    setShowAi(false);
     setShowHelp(false);
   };
 
@@ -370,6 +376,18 @@ export default function App() {
       case 'srs-advisor':
         hideAll();
         setShowSrsAdvisor(true);
+        break;
+      case 'stock-advisor':
+        hideAll();
+        setShowStockAdvisor(true);
+        break;
+      case 'ai-chat':
+      case 'ai-risk':
+      case 'ai-narrative':
+      case 'ai-catalyst':
+      case 'ai-forecast':
+        hideAll();
+        setShowAi(true);
         break;
       case 'help':
         hideAll();
@@ -561,6 +579,10 @@ export default function App() {
           <SrsDashboard onBack={() => setShowSrsDashboard(false)} />
         ) : showSrsAdvisor ? (
           <SrsAdvisor onBack={() => setShowSrsAdvisor(false)} />
+        ) : showStockAdvisor ? (
+          <StockAdvisor onBack={() => setShowStockAdvisor(false)} />
+        ) : showAi ? (
+          <AiHub onBack={() => setShowAi(false)} />
         ) : showHelp ? (
           <HelpGuide onBack={() => setShowHelp(false)} />
         ) : (

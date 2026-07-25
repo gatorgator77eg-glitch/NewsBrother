@@ -6,7 +6,7 @@ import crypto from 'crypto';
 const log = createLogger({ module: 'llm-config' });
 export const llmConfigRoutes = Router();
 
-function ensureTable() {
+export function ensureLlmTable() {
   return `CREATE TABLE IF NOT EXISTS llm_configs (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -20,6 +20,20 @@ function ensureTable() {
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   )`;
+}
+
+export function seedLlmDefaults(db: any) {
+  const count = db.exec('SELECT COUNT(*) FROM llm_configs');
+  const total = count[0]?.values[0]?.[0] as number || 0;
+  if (total > 0) return;
+
+  const id = 'opencode-big-pickle';
+  db.run(
+    `INSERT INTO llm_configs (id, name, provider, url, api_key, model, max_tokens, temperature, is_default)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, 'Big Pickle (OpenCode Zen)', 'opencode', 'https://opencode.ai/zen/v1', '', 'big-pickle', 16384, 0.7, 1]
+  );
+  log.info('Seeded default LLM config', { id, name: 'Big Pickle (OpenCode Zen)' });
 }
 
 function rowToConfig(r: any[]) {
@@ -41,7 +55,8 @@ function getRawApiKey(id: string, db: any): string | null {
 llmConfigRoutes.get('/', async (_req: Request, res: Response) => {
   try {
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
+    seedLlmDefaults(db);
     const result = db.exec('SELECT * FROM llm_configs ORDER BY is_default DESC, name ASC');
     const configs = (result[0]?.values || []).map(rowToConfig);
     res.json({ configs });
@@ -60,7 +75,7 @@ llmConfigRoutes.post('/', async (req: Request, res: Response) => {
     }
 
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
 
     const id = crypto.randomUUID();
     const hasDefault = db.exec('SELECT COUNT(*) FROM llm_configs WHERE is_default = 1');
@@ -86,7 +101,7 @@ llmConfigRoutes.post('/', async (req: Request, res: Response) => {
 llmConfigRoutes.put('/:id', async (req: Request, res: Response) => {
   try {
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
     const { id } = req.params;
     const { name, provider, url, apiKey, model, maxTokens, temperature, isDefault } = req.body;
 
@@ -128,7 +143,7 @@ llmConfigRoutes.put('/:id', async (req: Request, res: Response) => {
 llmConfigRoutes.delete('/:id', async (req: Request, res: Response) => {
   try {
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
     const { id } = req.params;
     db.run('DELETE FROM llm_configs WHERE id = ?', [id]);
     log.info('Deleted LLM config', { id });
@@ -143,7 +158,7 @@ llmConfigRoutes.delete('/:id', async (req: Request, res: Response) => {
 llmConfigRoutes.post('/:id/test', async (req: Request, res: Response) => {
   try {
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
     const { id } = req.params;
     const result = db.exec('SELECT * FROM llm_configs WHERE id = ?', [id]);
     if (!result[0]?.values[0]) return res.status(404).json({ error: 'Config not found' });
@@ -225,7 +240,8 @@ llmConfigRoutes.post('/bulk', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'configs array is required' });
     }
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
+    seedLlmDefaults(db);
     let imported = 0;
     const hasDefault = db.exec('SELECT COUNT(*) FROM llm_configs WHERE is_default = 1');
     let needsDefault = (hasDefault[0]?.values[0]?.[0] as number) === 0;
@@ -253,7 +269,8 @@ llmConfigRoutes.post('/bulk', async (req: Request, res: Response) => {
 llmConfigRoutes.get('/default', async (_req: Request, res: Response) => {
   try {
     const db = await getDb();
-    db.run(ensureTable());
+    db.run(ensureLlmTable());
+    seedLlmDefaults(db);
     const result = db.exec('SELECT * FROM llm_configs WHERE is_default = 1 LIMIT 1');
     if (!result[0]?.values[0]) return res.json({ config: null });
     const config = rowToConfig(result[0].values[0]);

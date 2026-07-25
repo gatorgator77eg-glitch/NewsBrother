@@ -1108,3 +1108,55 @@ export async function getSrsAdvisor(): Promise<any> {
   if (!res.ok) throw new Error('Failed to fetch advisor recommendations');
   return res.json();
 }
+
+// ── AI Hub ──────────────────────────────────────────────────────────────────
+
+export async function aiChat(messages: { role: string; content: string }[], symbol?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/ai/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, symbol }),
+  });
+  if (!res.ok) throw new Error('AI chat failed');
+  return res.json();
+}
+
+export async function aiRiskRadar(symbol: string, days?: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/ai/risk-radar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbol, days }),
+  });
+  if (!res.ok) throw new Error('AI risk radar failed');
+  return res.json();
+}
+
+export async function aiNarrativeDecoder(topic: string, days?: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/ai/narrative-decoder`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic, days }),
+  });
+  if (!res.ok) throw new Error('AI narrative decoder failed');
+  return res.json();
+}
+
+export async function aiCatalystEngine(symbol: string, days?: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/ai/catalyst-engine`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbol, days }),
+  });
+  if (!res.ok) throw new Error('AI catalyst engine failed');
+  return res.json();
+}
+
+export async function aiSentimentForecaster(params: { symbol?: string; country?: string; days?: number }): Promise<any> {
+  const res = await fetch(`${API_BASE}/ai/sentiment-forecaster`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error('AI sentiment forecaster failed');
+  return res.json();
+}

@@ -92,6 +92,55 @@ function initArchiveSchema() {
       value TEXT
     );
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS recs_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      symbol TEXT NOT NULL,
+      country TEXT NOT NULL,
+      composite INTEGER DEFAULT 0,
+      signal TEXT DEFAULT 'HOLD',
+      confidence REAL DEFAULT 0,
+      technical INTEGER DEFAULT 0,
+      sentiment INTEGER DEFAULT 0,
+      volume INTEGER DEFAULT 0,
+      relativeStrength INTEGER DEFAULT 0,
+      macro INTEGER DEFAULT 0,
+      fundamental INTEGER DEFAULT 0,
+      price REAL DEFAULT 0,
+      computed_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_recs_history_symbol ON recs_history(symbol, country)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_recs_history_date ON recs_history(computed_at)`);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS recs_alerts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      symbol TEXT NOT NULL,
+      country TEXT NOT NULL,
+      alert_type TEXT NOT NULL,
+      threshold REAL NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now')),
+      last_triggered TEXT
+    );
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_recs_alerts_active ON recs_alerts(is_active)`);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS recs_backtest (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      country TEXT NOT NULL,
+      period_days INTEGER DEFAULT 30,
+      avg_return REAL DEFAULT 0,
+      win_rate REAL DEFAULT 0,
+      sharpe REAL DEFAULT 0,
+      max_drawdown REAL DEFAULT 0,
+      total_signals INTEGER DEFAULT 0,
+      computed_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 }
 
 export function insertArchiveArticle(article: {

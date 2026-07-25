@@ -274,6 +274,85 @@ export function getSectors() {
   return result[0]?.values.map((row: any[]) => row[0] as string) || [];
 }
 
+export function deleteTicker(symbol: string): boolean {
+  db.run(`DELETE FROM stock_tickers WHERE symbol = ?`, [symbol]);
+  const deleted = db.getRowsModified();
+  if (deleted > 0) scheduleStockDbSave();
+  return deleted > 0;
+}
+
+export function deleteAllTickers(): number {
+  const countResult = db.exec(`SELECT COUNT(*) FROM stock_tickers`);
+  const count = countResult[0]?.values[0]?.[0] as number || 0;
+  db.run(`DELETE FROM stock_tickers`);
+  scheduleStockDbSave();
+  return count;
+}
+
+export function exportAllTickers() {
+  const result = db.exec(
+    `SELECT symbol, name, exchange, sector, industry, country, market_cap FROM stock_tickers ORDER BY symbol`
+  );
+  return result[0]?.values.map((row: any[]) => ({
+    symbol: row[0],
+    name: row[1],
+    exchange: row[2],
+    sector: row[3],
+    industry: row[4],
+    country: row[5],
+    market_cap: row[6],
+  })) || [];
+}
+
+export function importTickers(tickers: {
+  symbol: string;
+  name?: string;
+  exchange?: string;
+  sector?: string;
+  industry?: string;
+  country?: string;
+  market_cap?: number;
+}[], mode: 'upsert' | 'replace' = 'upsert'): { imported: number; skipped: number; errors: string[] } {
+  if (mode === 'replace') {
+    db.run(`DELETE FROM stock_tickers`);
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+  const stmt = db.prepare(
+    `INSERT OR REPLACE INTO stock_tickers (symbol, name, exchange, sector, industry, country, market_cap, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+  );
+
+  for (const t of tickers) {
+    if (!t.symbol || typeof t.symbol !== 'string') {
+      errors.push(`Invalid ticker: ${JSON.stringify(t)}`);
+      skipped++;
+      continue;
+    }
+    try {
+      stmt.run([
+        t.symbol.toUpperCase(),
+        t.name || '',
+        t.exchange || '',
+        t.sector || '',
+        t.industry || '',
+        t.country || '',
+        t.market_cap || 0,
+      ]);
+      imported++;
+    } catch (err: any) {
+      errors.push(`${t.symbol}: ${err.message}`);
+      skipped++;
+    }
+  }
+
+  stmt.free();
+  scheduleStockDbSave();
+  return { imported, skipped, errors: errors.slice(0, 50) };
+}
+
 export function getStockStats() {
   const tickerCount = db.exec(`SELECT COUNT(*) FROM stock_tickers`);
   const priceRows = db.exec(`SELECT COUNT(*) FROM stock_prices`);

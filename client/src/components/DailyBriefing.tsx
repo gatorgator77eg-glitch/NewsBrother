@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getHealth, type HealthStatus } from '../api';
 
 interface BriefingStory {
   title: string;
@@ -62,6 +61,9 @@ function hoursAgo(dateStr: string): string {
 export default function DailyBriefing({ onBack }: { onBack: () => void }) {
   const [data, setData] = useState<BriefingData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiReason, setAiReason] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/briefing/daily')
@@ -70,6 +72,19 @@ export default function DailyBriefing({ onBack }: { onBack: () => void }) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!data) return;
+    setAiLoading(true);
+    fetch('/api/briefing/ai-summary', { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.summary) setAiSummary(d.summary);
+        else if (d.reason) setAiReason(d.reason);
+      })
+      .catch(() => setAiReason('Failed to generate AI summary.'))
+      .finally(() => setAiLoading(false));
+  }, [data]);
 
   return (
     <div>
@@ -98,6 +113,40 @@ export default function DailyBriefing({ onBack }: { onBack: () => void }) {
       {data && !loading && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            {/* AI Executive Summary */}
+            {(aiLoading || aiSummary || aiReason) && (
+              <div className={`rounded-2xl p-6 shadow-sm ${
+                aiSummary
+                  ? 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800'
+                  : 'bg-white dark:bg-gray-800'
+              }`}>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                  <span className="text-blue-500">🤖</span> AI Executive Summary
+                  {aiLoading && (
+                    <span className="ml-2 flex items-center gap-1.5 text-xs text-blue-500 font-normal">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                      Generating...
+                    </span>
+                  )}
+                </h2>
+                {aiLoading && !aiSummary && (
+                  <div className="space-y-2">
+                    <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded-full w-full animate-pulse" />
+                    <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded-full w-4/5 animate-pulse" />
+                    <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded-full w-3/5 animate-pulse" />
+                  </div>
+                )}
+                {aiSummary && (
+                  <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                    {aiSummary}
+                  </div>
+                )}
+                {aiReason && !aiSummary && !aiLoading && (
+                  <p className="text-sm text-gray-400 dark:text-gray-500 italic">{aiReason}</p>
+                )}
+              </div>
+            )}
+
             {data.breakingNews.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">

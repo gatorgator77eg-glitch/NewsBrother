@@ -49,6 +49,7 @@ const MENU: MenuEntry[] = [
     children: [
       { id: 'stocks', label: 'Stock Library', icon: '📊', action: 'stocks' },
       { id: 'analytics', label: 'Market Analytics', icon: '🔍', action: 'analytics' },
+      { id: 'stock-advisor', label: 'Stock Advisor', icon: '🎯', action: 'stock-advisor' },
       { id: 'watchlist', label: 'Watchlist', icon: '💼', action: 'watchlist' },
     ],
   },
@@ -135,6 +136,17 @@ const MENU: MenuEntry[] = [
     ],
   },
   { divider: 'd1' },
+  {
+    id: 'ai', label: 'AI Intelligence', icon: '🧠',
+    children: [
+      { id: 'ai-chat', label: 'Analyst Chat', icon: '💬', action: 'ai-chat' },
+      { id: 'ai-risk', label: 'Risk Radar', icon: '⚠️', action: 'ai-risk' },
+      { id: 'ai-narrative', label: 'Narrative Decoder', icon: '📰', action: 'ai-narrative' },
+      { id: 'ai-catalyst', label: 'Catalyst Engine', icon: '⚡', action: 'ai-catalyst' },
+      { id: 'ai-forecast', label: 'Sentiment Forecast', icon: '🔮', action: 'ai-forecast' },
+    ],
+  },
+  { divider: 'd2' },
   { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
   { id: 'help', label: 'Help Guide', icon: '❓', action: 'help' },
 ];

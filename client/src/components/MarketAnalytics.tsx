@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 type Tab = 'movers' | 'volume' | 'heatmap' | 'sectors' | 'seasonality' | 'correlation' | 'risk-reward' | 'compare' | 'events' | 'countries';
 
@@ -48,8 +48,13 @@ export default function MarketAnalytics({ onBack }: Props) {
   const [tab, setTab] = useState<Tab>('movers');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchTab = useCallback(async (t: Tab) => {
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setData(null);
     try {
@@ -66,11 +71,14 @@ export default function MarketAnalytics({ onBack }: Props) {
         case 'compare': case 'events': setData(null); setLoading(false); return;
       }
       if (url) {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
         if (res.ok) setData(await res.json());
       }
-    } catch (err) { console.error(err); }
-    setLoading(false);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error(err);
+    }
+    if (!controller.signal.aborted) setLoading(false);
   }, []);
 
   useEffect(() => { fetchTab(tab); }, [tab, fetchTab]);
@@ -101,16 +109,16 @@ export default function MarketAnalytics({ onBack }: Props) {
         </div>
       )}
 
-      {!loading && tab === 'movers' && data && <MoversViz data={data.movers} />}
-      {!loading && tab === 'volume' && data && <VolumeViz data={data.volume} />}
-      {!loading && tab === 'heatmap' && data && <HeatmapViz data={data.heatmap} />}
-      {!loading && tab === 'sectors' && data && <SectorsViz data={data.sectors} />}
-      {!loading && tab === 'seasonality' && data && <SeasonalityViz data={data.seasonality} />}
-      {!loading && tab === 'correlation' && data && <CorrelationViz data={data} />}
-      {!loading && tab === 'risk-reward' && data && <RiskRewardViz data={data.risk_reward} />}
+      {!loading && tab === 'movers' && data?.movers && <MoversViz data={data.movers} />}
+      {!loading && tab === 'volume' && data?.volume && <VolumeViz data={data.volume} />}
+      {!loading && tab === 'heatmap' && data?.heatmap && <HeatmapViz data={data.heatmap} />}
+      {!loading && tab === 'sectors' && data?.sectors && <SectorsViz data={data.sectors} />}
+      {!loading && tab === 'seasonality' && data?.seasonality && <SeasonalityViz data={data.seasonality} />}
+      {!loading && tab === 'correlation' && data?.correlation && <CorrelationViz data={data} />}
+      {!loading && tab === 'risk-reward' && data?.risk_reward && <RiskRewardViz data={data.risk_reward} />}
       {!loading && tab === 'compare' && <CompareViz />}
       {!loading && tab === 'events' && <EventTimelineViz />}
-      {!loading && tab === 'countries' && data && <CountriesViz data={data.countries} />}
+      {!loading && tab === 'countries' && data?.countries && <CountriesViz data={data.countries} />}
     </div>
   );
 }

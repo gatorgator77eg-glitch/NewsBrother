@@ -58,6 +58,16 @@ interface FeedItem {
   tags: string[];
 }
 
+interface TickerItem {
+  symbol: string;
+  name: string;
+  exchange: string;
+  sector: string;
+  industry: string;
+  country: string;
+  market_cap: number;
+}
+
 const PROVIDERS = [
   { value: 'openai', label: 'OpenAI', defaultUrl: 'https://api.openai.com/v1', placeholder: 'sk-...' },
   { value: 'anthropic', label: 'Anthropic', defaultUrl: 'https://api.anthropic.com/v1', placeholder: 'sk-ant-...' },
@@ -95,6 +105,17 @@ export default function Settings({ onBack }: Props) {
   const [feedForm, setFeedForm] = useState({ id: '', name: '', url: '', rss_url: '', bias: 'center', credibility_score: 0.5 });
   const [feedError, setFeedError] = useState<string | null>(null);
   const [feedSaving, setFeedSaving] = useState(false);
+
+  const [tickers, setTickers] = useState<TickerItem[]>([]);
+  const [tickerLoading, setTickerLoading] = useState(true);
+  const [tickerSearch, setTickerSearch] = useState('');
+  const [tickerPage, setTickerPage] = useState(1);
+  const [tickerTotal, setTickerTotal] = useState(0);
+  const [showTickerForm, setShowTickerForm] = useState(false);
+  const [tickerForm, setTickerForm] = useState({ symbol: '', name: '', exchange: '', sector: '', industry: '', country: '', market_cap: 0 });
+  const [tickerError, setTickerError] = useState<string | null>(null);
+  const [tickerSaving, setTickerSaving] = useState(false);
+  const [tickerImportMode, setTickerImportMode] = useState<'upsert' | 'replace'>('upsert');
 
   useEffect(() => {
     try {
@@ -181,6 +202,68 @@ export default function Settings({ onBack }: Props) {
 
   const fetchFeeds = () => {
     fetch('/api/feeds').then(r => r.json()).then(d => { setFeeds(d || []); setFeedsLoading(false); }).catch(() => setFeedsLoading(false));
+  };
+
+  const fetchTickers = () => {
+    setTickerLoading(true);
+    const q = tickerSearch ? `&search=${encodeURIComponent(tickerSearch)}` : '';
+    fetch(`/api/stocks?limit=50&page=${tickerPage}${q}`)
+      .then(r => r.json())
+      .then(d => { setTickers(d.tickers || []); setTickerTotal(d.total || 0); setTickerLoading(false); })
+      .catch(() => setTickerLoading(false));
+  };
+
+  useEffect(() => { fetchTickers(); }, [tickerPage, tickerSearch]);
+
+  const saveTicker = async () => {
+    setTickerSaving(true);
+    setTickerError(null);
+    try {
+      const res = await fetch('/api/stocks/tickers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tickerForm),
+      });
+      const data = await res.json();
+      if (!res.ok) { setTickerError(data.error || 'Failed to save'); setTickerSaving(false); return; }
+      setShowTickerForm(false);
+      fetchTickers();
+    } catch { setTickerError('Network error'); }
+    setTickerSaving(false);
+  };
+
+  const deleteTicker = async (symbol: string) => {
+    if (!confirm(`Delete ticker ${symbol}?`)) return;
+    await fetch(`/api/stocks/tickers/${symbol}`, { method: 'DELETE' });
+    fetchTickers();
+  };
+
+  const exportTickers = async () => {
+    try {
+      const res = await fetch('/api/stocks/tickers/export');
+      const data = await res.json();
+      downloadJson(data, 'analytical-tickers.json');
+    } catch {}
+  };
+
+  const importTickersFromJson = async (file: File) => {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const items = Array.isArray(data) ? data : data.tickers || [];
+      const res = await fetch('/api/stocks/tickers/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickers: items, mode: tickerImportMode }),
+      });
+      const result = await res.json();
+      if (!res.ok) { setTickerError(result.error || 'Import failed'); return; }
+      alert(`Imported ${result.imported} tickers (${result.skipped} skipped${result.errors?.length ? `, ${result.errors.length} errors` : ''})`);
+      setTickerError(null);
+      fetchTickers();
+    } catch {
+      alert('Import failed: invalid JSON file');
+    }
   };
 
   const filteredFeeds = feedFilter ? feeds.filter(f => f.bias === feedFilter) : feeds;
@@ -272,9 +355,15 @@ export default function Settings({ onBack }: Props) {
     const safeConfigs = configs.map(({ apiKey, ...rest }) => rest);
     downloadJson({ configs: safeConfigs, exportedAt: new Date().toISOString() }, 'analytical-llm-configs.json');
   };
-  const exportAll = () => {
+  const exportAll = async () => {
     const safeConfigs = configs.map(({ apiKey, ...rest }) => rest);
-    downloadJson({ feeds, configs: safeConfigs, exportedAt: new Date().toISOString() }, 'analytical-settings.json');
+    try {
+      const res = await fetch('/api/stocks/tickers/export');
+      const tickerData = await res.json();
+      downloadJson({ feeds, configs: safeConfigs, tickers: tickerData.tickers, exportedAt: new Date().toISOString() }, 'analytical-settings.json');
+    } catch {
+      downloadJson({ feeds, configs: safeConfigs, exportedAt: new Date().toISOString() }, 'analytical-settings.json');
+    }
   };
 
   return (
@@ -299,7 +388,7 @@ export default function Settings({ onBack }: Props) {
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Data Management</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Export or import your configuration</p>
         </div>
-        <div className="px-5 py-4 grid grid-cols-3 gap-3">
+        <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="text-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
             <p className="text-xs font-medium text-gray-700 dark:text-gray-300">RSS Feeds</p>
             <div className="flex gap-1.5 justify-center">
@@ -327,6 +416,19 @@ export default function Settings({ onBack }: Props) {
             </div>
           </div>
           <div className="text-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Stock Tickers</p>
+            <div className="flex gap-1.5 justify-center">
+              <button onClick={exportTickers}
+                className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Export
+              </button>
+              <label className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer">
+                Import
+                <input type="file" accept=".json" className="hidden" onChange={e => e.target.files?.[0] && importTickersFromJson(e.target.files[0])} />
+              </label>
+            </div>
+          </div>
+          <div className="text-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
             <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Everything</p>
             <div className="flex gap-1.5 justify-center">
               <button onClick={exportAll}
@@ -340,13 +442,14 @@ export default function Settings({ onBack }: Props) {
                   const data = JSON.parse(text);
                   if (data.feeds) await importFromJson(new File([JSON.stringify(data.feeds)], 'feeds.json'), 'feeds');
                   if (data.configs) await importFromJson(new File([JSON.stringify(data.configs)], 'configs.json'), 'llm');
+                  if (data.tickers) await importTickersFromJson(new File([JSON.stringify(data)], 'tickers.json'));
                 })()} />
               </label>
             </div>
           </div>
         </div>
         <div className="px-5 pb-3">
-          <p className="text-[10px] text-gray-400 dark:text-gray-500">Exported JSON does not include API keys for security. Imported feeds are merged by ID.</p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">Exported JSON does not include API keys for security. Imported feeds are merged by ID. Tickers support upsert or replace mode.</p>
         </div>
       </section>
 
@@ -626,6 +729,164 @@ export default function Settings({ onBack }: Props) {
               <button onClick={() => setShowForm(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                 Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ─── Ticker Manager ─────────────────────── */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Stock Tickers</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{tickerTotal} tickers in database</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select value={tickerImportMode} onChange={e => setTickerImportMode(e.target.value as 'upsert' | 'replace')}
+              className="text-[11px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg px-2 py-1 border-0">
+              <option value="upsert">Upsert (merge)</option>
+              <option value="replace">Replace all</option>
+            </select>
+            <button onClick={exportTickers}
+              className="px-3 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+              Export JSON
+            </button>
+            <label className="px-3 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer">
+              Import JSON
+              <input type="file" accept=".json" className="hidden" onChange={e => e.target.files?.[0] && importTickersFromJson(e.target.files[0])} />
+            </label>
+            <button onClick={() => {
+              setTickerForm({ symbol: '', name: '', exchange: '', sector: '', industry: '', country: '', market_cap: 0 });
+              setTickerError(null);
+              setShowTickerForm(true);
+            }}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
+              + Add Ticker
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700">
+          <input value={tickerSearch} onChange={e => { setTickerSearch(e.target.value); setTickerPage(1); }}
+            placeholder="Search by symbol or name..."
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+        </div>
+
+        {/* Add/Edit Form */}
+        {showTickerForm && (
+          <div className="px-5 py-4 bg-gray-50 dark:bg-gray-750 border-b border-gray-100 dark:border-gray-700 space-y-3">
+            {tickerError && (
+              <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded-lg">{tickerError}</div>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Symbol *</label>
+                <input value={tickerForm.symbol} onChange={e => setTickerForm(f => ({ ...f, symbol: e.target.value.toUpperCase() }))}
+                  placeholder="e.g. AAPL"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Name</label>
+                <input value={tickerForm.name} onChange={e => setTickerForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Apple Inc."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Exchange</label>
+                <input value={tickerForm.exchange} onChange={e => setTickerForm(f => ({ ...f, exchange: e.target.value }))}
+                  placeholder="NASDAQ"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Sector</label>
+                <input value={tickerForm.sector} onChange={e => setTickerForm(f => ({ ...f, sector: e.target.value }))}
+                  placeholder="Technology"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Industry</label>
+                <input value={tickerForm.industry} onChange={e => setTickerForm(f => ({ ...f, industry: e.target.value }))}
+                  placeholder="Consumer Electronics"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Country</label>
+                <input value={tickerForm.country} onChange={e => setTickerForm(f => ({ ...f, country: e.target.value }))}
+                  placeholder="United States"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Market Cap</label>
+                <input type="number" value={tickerForm.market_cap || ''} onChange={e => setTickerForm(f => ({ ...f, market_cap: parseFloat(e.target.value) || 0 }))}
+                  placeholder="0"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={saveTicker} disabled={tickerSaving || !tickerForm.symbol}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+                {tickerSaving ? 'Saving...' : 'Save Ticker'}
+              </button>
+              <button onClick={() => setShowTickerForm(false)}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Ticker List */}
+        {tickerLoading ? (
+          <div className="px-5 py-8 text-center text-gray-400 text-sm">Loading tickers...</div>
+        ) : tickers.length === 0 ? (
+          <div className="px-5 py-8 text-center text-gray-400 text-sm">
+            {tickerSearch ? 'No tickers match your search.' : 'No tickers yet. Add manually or import a JSON file.'}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-[500px] overflow-y-auto">
+            {tickers.map(t => (
+              <div key={t.symbol} className="px-5 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{t.symbol}</span>
+                    {t.exchange && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500">{t.exchange}</span>}
+                    {t.sector && <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">{t.sector}</span>}
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{t.name}{t.country ? ` \u00B7 ${t.country}` : ''}{t.market_cap > 0 ? ` \u00B7 ${(t.market_cap / 1e9).toFixed(1)}B` : ''}</p>
+                </div>
+                <button onClick={() => {
+                  setTickerForm({ symbol: t.symbol, name: t.name, exchange: t.exchange, sector: t.sector, industry: t.industry, country: t.country, market_cap: t.market_cap });
+                  setTickerError(null);
+                  setShowTickerForm(true);
+                }}
+                  className="px-2 py-1 text-[11px] rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors shrink-0">
+                  Edit
+                </button>
+                <button onClick={() => deleteTicker(t.symbol)}
+                  className="px-2 py-1 text-[11px] rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors shrink-0">
+                  Del
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {tickerTotal > 50 && (
+          <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <span className="text-[11px] text-gray-400">
+              Showing {(tickerPage - 1) * 50 + 1}-{Math.min(tickerPage * 50, tickerTotal)} of {tickerTotal}
+            </span>
+            <div className="flex gap-1">
+              <button onClick={() => setTickerPage(p => Math.max(1, p - 1))} disabled={tickerPage === 1}
+                className="px-2 py-1 text-[11px] rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 transition-colors">
+                Prev
+              </button>
+              <button onClick={() => setTickerPage(p => p + 1)} disabled={tickerPage * 50 >= tickerTotal}
+                className="px-2 py-1 text-[11px] rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 transition-colors">
+                Next
               </button>
             </div>
           </div>

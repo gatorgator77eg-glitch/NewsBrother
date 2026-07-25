@@ -11,6 +11,11 @@ import {
   getSectors,
   getStockStats,
   setMeta,
+  upsertTicker,
+  deleteTicker,
+  deleteAllTickers,
+  exportAllTickers,
+  importTickers,
 } from '../stocks/db';
 import { runFullDownload, runSmartUpdate, isDownloading, abortDownload } from '../stocks/downloader';
 import { createLogger } from '../logger';
@@ -76,6 +81,87 @@ stocksRoutes.get('/stocks/stats', async (_req, res) => {
   try {
     await getStockDb();
     res.json(getStockStats());
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Ticker CRUD ─────────────────────────────────────────────────────────────
+
+stocksRoutes.post('/stocks/tickers', async (req, res) => {
+  try {
+    await getStockDb();
+    const { symbol, name, exchange, sector, industry, country, market_cap } = req.body;
+    if (!symbol || typeof symbol !== 'string') {
+      res.status(400).json({ error: 'symbol is required' });
+      return;
+    }
+    upsertTicker({
+      symbol: symbol.toUpperCase(),
+      name: name || '',
+      exchange: exchange || '',
+      sector: sector || '',
+      industry: industry || '',
+      country: country || '',
+      market_cap: market_cap || 0,
+    });
+    res.json({ success: true, symbol: symbol.toUpperCase() });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+stocksRoutes.delete('/stocks/tickers/:symbol', async (req, res) => {
+  try {
+    await getStockDb();
+    const deleted = deleteTicker(req.params.symbol.toUpperCase());
+    if (!deleted) {
+      res.status(404).json({ error: 'Ticker not found' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Ticker Export/Import ────────────────────────────────────────────────────
+
+stocksRoutes.get('/stocks/tickers/export', async (_req, res) => {
+  try {
+    await getStockDb();
+    const tickers = exportAllTickers();
+    res.setHeader('Content-Disposition', 'attachment; filename=stock_tickers.json');
+    res.json({ tickers, exportedAt: new Date().toISOString(), count: tickers.length });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+stocksRoutes.post('/stocks/tickers/import', async (req, res) => {
+  try {
+    await getStockDb();
+    const { tickers, mode } = req.body;
+    if (!Array.isArray(tickers)) {
+      res.status(400).json({ error: 'tickers must be an array' });
+      return;
+    }
+    if (tickers.length > 50000) {
+      res.status(400).json({ error: 'Maximum 50,000 tickers per import' });
+      return;
+    }
+    const result = importTickers(tickers, mode === 'replace' ? 'replace' : 'upsert');
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+stocksRoutes.post('/stocks/tickers/clear', async (_req, res) => {
+  try {
+    await getStockDb();
+    const count = deleteAllTickers();
+    res.json({ success: true, deleted: count });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
