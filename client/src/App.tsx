@@ -41,6 +41,7 @@ import MathAdvanced from './components/MathAdvanced';
 import SrsProducts from './components/SrsProducts';
 import SrsDashboard from './components/SrsDashboard';
 import SrsAdvisor from './components/SrsAdvisor';
+import HelpGuide from './components/HelpGuide';
 import HealthIndicator from './components/HealthIndicator';
 import TickerSearch from './components/TickerSearch';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
@@ -101,6 +102,7 @@ export default function App() {
   const [showSrs, setShowSrs] = useState(false);
   const [showSrsDashboard, setShowSrsDashboard] = useState(false);
   const [showSrsAdvisor, setShowSrsAdvisor] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -219,6 +221,7 @@ export default function App() {
     setShowSrs(false);
     setShowSrsDashboard(false);
     setShowSrsAdvisor(false);
+    setShowHelp(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -365,6 +368,10 @@ export default function App() {
         hideAll();
         setShowSrsAdvisor(true);
         break;
+      case 'help':
+        hideAll();
+        setShowHelp(true);
+        break;
     }
   };
 
@@ -400,7 +407,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor && !showHelp;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -551,6 +558,8 @@ export default function App() {
           <SrsDashboard onBack={() => setShowSrsDashboard(false)} />
         ) : showSrsAdvisor ? (
           <SrsAdvisor onBack={() => setShowSrsAdvisor(false)} />
+        ) : showHelp ? (
+          <HelpGuide onBack={() => setShowHelp(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}

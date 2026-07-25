@@ -136,6 +136,7 @@ const MENU: MenuEntry[] = [
   },
   { divider: 'd1' },
   { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
+  { id: 'help', label: 'Help Guide', icon: '❓', action: 'help' },
 ];
 
 interface Props {
