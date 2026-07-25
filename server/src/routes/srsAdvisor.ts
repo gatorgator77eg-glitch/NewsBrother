@@ -126,6 +126,7 @@ interface FundScore {
 
 function scoreFund(
   isin: string,
+  fundName: string,
   navData: any[],
   riskFreeRate: number,
   inflation: number,
@@ -201,7 +202,7 @@ function scoreFund(
     + macroScore * 0.10;
 
   // ── Factsheet URL ──
-  const factsheetUrl = navData[0]?.factsheet_url || '';
+  const factsheetUrl = '';
 
   // ── Build explanation ──
   const parts: string[] = [];
@@ -230,7 +231,7 @@ function scoreFund(
 
   return {
     isin,
-    name: navData[0]?.fund_name || isin,
+    name: fundName,
     fundHouse: meta.fundHouse,
     fundType: meta.fundType,
     category: meta.category,
@@ -305,9 +306,8 @@ srsAdvisorRoutes.get('/advisor', async (_req: Request, res: Response) => {
 
       // Get full NAV history
       const navData = query(db, `
-        SELECT n.isin, n.date, n.nav, f.fund_name
+        SELECT n.isin, n.date, n.nav
         FROM srs_nav_history n
-        LEFT JOIN srs_funds f ON n.isin = f.isin
         WHERE n.isin = ?
         ORDER BY n.date
       `, [isin]);
@@ -317,7 +317,14 @@ srsAdvisorRoutes.get('/advisor', async (_req: Request, res: Response) => {
         continue;
       }
 
-      const score = scoreFund(isin, navData, riskFreeRate, inflation, tbillYield);
+      // Get fund name from srs_funds if available
+    let fundName = isin;
+    try {
+      const nameRow = query(db, `SELECT fund_name FROM srs_funds WHERE isin = ? LIMIT 1`, [isin]);
+      if (nameRow[0]?.fund_name) fundName = nameRow[0].fund_name;
+    } catch {}
+
+    const score = scoreFund(isin, fundName, navData, riskFreeRate, inflation, tbillYield);
       if (score) {
         allScores.push(score);
       }

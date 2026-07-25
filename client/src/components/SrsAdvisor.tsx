@@ -217,16 +217,22 @@ export default function SrsAdvisor({ onBack }: Props) {
   const [data, setData] = useState<AdvisorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setScanning(true);
+    setError(null);
     try {
       const res = await fetch('/api/srs/advisor');
-      if (res.ok) {
-        const d = await res.json();
-        setData(d);
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(errBody.error || `Server error ${res.status}`);
       }
-    } catch {}
+      const d = await res.json();
+      setData(d);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load advisor data');
+    }
     setLoading(false);
     setScanning(false);
   }, []);
@@ -267,6 +273,12 @@ export default function SrsAdvisor({ onBack }: Props) {
       </div>
 
       {/* Meta stats */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-300">
+          <strong>Error:</strong> {error}
+          <p className="text-xs mt-1 text-red-500 dark:text-red-400">Make sure the server has been restarted to load the advisor route.</p>
+        </div>
+      )}
       {data?.meta && (
         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
           <span>📊 {data.meta.analyzedCount} funds analyzed</span>
