@@ -427,7 +427,7 @@ export default function App() {
                 </svg>
               </button>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                <span className="text-blue-600">Political</span>
+                <span className="text-blue-600">Analytical</span>
                 <span className="text-gray-400 mx-1">|</span>
                 <span className="text-gray-700 dark:text-gray-300">Map News</span>
               </h1>

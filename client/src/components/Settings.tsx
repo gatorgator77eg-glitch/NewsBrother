@@ -379,7 +379,7 @@ export default function Settings({ onBack }: Props) {
       </section>
 
       <div className="text-center py-4">
-        <p className="text-xs text-gray-400 dark:text-gray-500">Political | Map News v1.0</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">Analytical | Map News v1.0</p>
       </div>
     </div>
   );

@@ -402,7 +402,7 @@ export default function Sidebar({ isOpen, onClose, onAction }: Props) {
 
           <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-700">
             <p className="text-[11px] text-gray-300 dark:text-gray-600">
-              Political | Map News v1.0
+              Analytical | Map News v1.0
             </p>
           </div>
         </div>

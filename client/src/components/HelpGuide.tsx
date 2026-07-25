@@ -89,14 +89,14 @@ export default function HelpGuide({ onBack }: Props) {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Help Guide</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">How to interpret every feature in Political | Map News</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">How to interpret every feature in Analytical | Map News</p>
         </div>
       </div>
 
       {/* ═══ OVERVIEW ═══ */}
       <SectionBlock id="overview" title="Overview" icon="🗺️" expanded={expanded.has('overview')} onToggle={() => toggle('overview')}>
         <SubSection title="What is this tool?">
-          <p>Political | Map News is a political news aggregation and market intelligence platform. It pulls from 52 RSS sources across the political spectrum, stores articles in a local database, and provides analytics tools to understand how news relates to financial markets.</p>
+          <p>Analytical | Map News is a political news aggregation and market intelligence platform. It pulls from 52 RSS sources across the political spectrum, stores articles in a local database, and provides analytics tools to understand how news relates to financial markets.</p>
           <p><strong>Key capabilities:</strong> Cross-spectrum news search, left/right/center bias classification, sentiment analysis, stock price correlation, predictive intelligence (Janus), local GPU-powered AI, and SRS investment product analysis.</p>
         </SubSection>
         <SubSection title="Navigation">
@@ -414,7 +414,7 @@ export default function HelpGuide({ onBack }: Props) {
 
       {/* Footer */}
       <div className="text-center py-6 text-xs text-gray-400 dark:text-gray-500">
-        Political | Map News — Built with 52 RSS sources, 5,000+ tickers, and zero tracking.
+        Analytical | Map News — Built with 52 RSS sources, 5,000+ tickers, and zero tracking.
       </div>
     </div>
   );
