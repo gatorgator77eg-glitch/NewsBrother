@@ -215,6 +215,7 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
   const [scrapedFundCount, setScrapedFundCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [navRefreshing, setNavRefreshing] = useState(false);
+  const [navStatus, setNavStatus] = useState<string | null>(null);
 
   const loadProducts = () => {
     fetch('/api/srs/products').then(r => r.json()).then((prodData: ProductsResponse) => {
@@ -252,9 +253,20 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
 
   const handleNavRefresh = async () => {
     setNavRefreshing(true);
+    setNavStatus(null);
     try {
-      await fetch('/api/srs/nav/refresh', { method: 'POST' });
-    } catch {}
+      const res = await fetch('/api/srs/nav/refresh', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        setNavStatus(`Error: ${data.error || 'Server error'}`);
+      } else if (data.totalIsins === 0) {
+        setNavStatus('No funds with ISINs found. Click "Refresh from DBS" first to scrape the fund list.');
+      } else {
+        setNavStatus(`NAV download started for ${data.totalIsins} funds. This runs in the background — check the server logs for progress.`);
+      }
+    } catch (err: any) {
+      setNavStatus(`Failed: ${err.message || 'Network error'}`);
+    }
     setNavRefreshing(false);
   };
 
@@ -354,6 +366,18 @@ export default function SrsProducts({ onBack }: { onBack: () => void }) {
           </button>
         </div>
       </div>
+
+      {navStatus && (
+        <div className={`rounded-xl px-4 py-2.5 text-sm mb-4 ${
+          navStatus.startsWith('Error') || navStatus.startsWith('Failed')
+            ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+            : navStatus.startsWith('No funds')
+              ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800'
+              : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+        }`}>
+          {navStatus}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
