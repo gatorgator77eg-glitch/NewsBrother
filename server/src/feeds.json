@@ -466,5 +466,437 @@
     "bias": "lean-right",
     "credibilityScore": 0.55,
     "tags": ["politics"]
+  },
+  {
+    "id": "straits-times-asia",
+    "name": "The Straits Times (Asia)",
+    "url": "https://www.straitstimes.com",
+    "rssUrl": "https://www.straitstimes.com/news/asia/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.82,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "diplomat",
+    "name": "The Diplomat",
+    "url": "https://thediplomat.com",
+    "rssUrl": "https://thediplomat.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.78,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "cna",
+    "name": "Channel News Asia",
+    "url": "https://www.channelnewsasia.com",
+    "rssUrl": "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml",
+    "bias": "center",
+    "credibilityScore": 0.76,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "japan-times",
+    "name": "The Japan Times",
+    "url": "https://www.japantimes.co.jp",
+    "rssUrl": "https://www.japantimes.co.jp/feed/",
+    "bias": "center",
+    "credibilityScore": 0.78,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "scmp",
+    "name": "South China Morning Post",
+    "url": "https://www.scmp.com",
+    "rssUrl": "https://www.scmp.com/rss/91/feed",
+    "bias": "center",
+    "credibilityScore": 0.75,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "bangkok-post",
+    "name": "Bangkok Post",
+    "url": "https://www.bangkokpost.com",
+    "rssUrl": "https://www.bangkokpost.com/rss/data/topstories.xml",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "le-monde-en",
+    "name": "Le Monde (English)",
+    "url": "https://www.lemonde.fr/en",
+    "rssUrl": "https://www.lemonde.fr/en/rss/une.xml",
+    "bias": "left",
+    "credibilityScore": 0.8,
+    "tags": ["politics", "world", "economy"]
+  },
+  {
+    "id": "france24",
+    "name": "France 24",
+    "url": "https://www.france24.com/en",
+    "rssUrl": "https://www.france24.com/en/rss",
+    "bias": "center",
+    "credibilityScore": 0.76,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "the-local-europe",
+    "name": "The Local Europe",
+    "url": "https://www.thelocal.com",
+    "rssUrl": "https://feeds.thelocal.com/rss/",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["politics", "world"]
+  },
+  {
+    "id": "bbc-middle-east",
+    "name": "BBC Middle East",
+    "url": "https://www.bbc.com/news/world/middle_east",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "middle-east-eye",
+    "name": "Middle East Eye",
+    "url": "https://www.middleeasteye.net",
+    "rssUrl": "https://www.middleeasteye.net/rss",
+    "bias": "left",
+    "credibilityScore": 0.7,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "european-newsroom",
+    "name": "European Newsroom",
+    "url": "https://europeannewsroom.com",
+    "rssUrl": "https://europeannewsroom.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.78,
+    "tags": ["world", "economy"]
+  },
+  {
+    "id": "rferl",
+    "name": "Radio Free Europe / Radio Liberty",
+    "url": "https://www.rferl.org",
+    "rssUrl": "https://www.rferl.org/api/",
+    "bias": "center",
+    "credibilityScore": 0.75,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "brussels-morning",
+    "name": "Brussels Morning",
+    "url": "https://brusselsmorning.com",
+    "rssUrl": "https://brusselsmorning.com/feed/",
+    "bias": "center",
+    "credibilityScore": 0.7,
+    "tags": ["world", "politics", "economy"]
+  },
+  {
+    "id": "the-local-germany",
+    "name": "The Local Germany",
+    "url": "https://www.thelocal.de",
+    "rssUrl": "https://feeds.thelocal.com/rss/de",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "the-local-spain",
+    "name": "The Local Spain",
+    "url": "https://www.thelocal.es",
+    "rssUrl": "https://feeds.thelocal.com/rss/es",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "the-local-france",
+    "name": "The Local France",
+    "url": "https://www.thelocal.fr",
+    "rssUrl": "https://feeds.thelocal.com/rss/fr",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "the-local-sweden",
+    "name": "The Local Sweden",
+    "url": "https://www.thelocal.se",
+    "rssUrl": "https://feeds.thelocal.com/rss/se",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "bbc-europe",
+    "name": "BBC Europe",
+    "url": "https://www.bbc.com/news/world/europe",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "guardian-world",
+    "name": "The Guardian World",
+    "url": "https://www.theguardian.com/world",
+    "rssUrl": "https://www.theguardian.com/world/rss",
+    "bias": "left",
+    "credibilityScore": 0.82,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "independent-world",
+    "name": "The Independent World",
+    "url": "https://www.independent.co.uk/news/world",
+    "rssUrl": "https://www.independent.co.uk/news/world/rss",
+    "bias": "left",
+    "credibilityScore": 0.72,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "euronews",
+    "name": "Euronews",
+    "url": "https://www.euronews.com",
+    "rssUrl": "https://www.euronews.com/rss",
+    "bias": "center",
+    "credibilityScore": 0.72,
+    "tags": ["world", "politics", "economy"]
+  },
+  {
+    "id": "daily-express-uk",
+    "name": "Daily Express (UK)",
+    "url": "https://www.express.co.uk",
+    "rssUrl": "https://www.express.co.uk/posts/rss",
+    "bias": "right",
+    "credibilityScore": 0.52,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "al-monitor",
+    "name": "Al-Monitor",
+    "url": "https://www.al-monitor.com",
+    "rssUrl": "https://www.al-monitor.com/rss",
+    "bias": "center",
+    "credibilityScore": 0.75,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "middle-east-monitor",
+    "name": "Middle East Monitor",
+    "url": "https://www.middleeastmonitor.com",
+    "rssUrl": "https://www.middleeastmonitor.com/feed/",
+    "bias": "left",
+    "credibilityScore": 0.65,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "arab-news",
+    "name": "Arab News",
+    "url": "https://www.arabnews.com",
+    "rssUrl": "https://www.arabnews.com/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.68,
+    "tags": ["world", "politics", "economy"]
+  },
+  {
+    "id": "france24-mideast",
+    "name": "France 24 Middle East",
+    "url": "https://www.france24.com/en/middle-east",
+    "rssUrl": "https://www.france24.com/en/middle-east/rss",
+    "bias": "center",
+    "credibilityScore": 0.76,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "daily-sabah",
+    "name": "Daily Sabah",
+    "url": "https://www.dailysabah.com",
+    "rssUrl": "https://www.dailysabah.com/rssFeed/mideast",
+    "bias": "right",
+    "credibilityScore": 0.58,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "jerusalem-post",
+    "name": "The Jerusalem Post",
+    "url": "https://www.jpost.com",
+    "rssUrl": "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
+    "bias": "lean-right",
+    "credibilityScore": 0.7,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "haaretz",
+    "name": "Haaretz",
+    "url": "https://www.haaretz.com",
+    "rssUrl": "https://www.haaretz.com/cmlink/1.628765",
+    "bias": "left",
+    "credibilityScore": 0.78,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "france24-africa",
+    "name": "France 24 Africa",
+    "url": "https://www.france24.com/en/africa",
+    "rssUrl": "https://www.france24.com/en/africa/rss",
+    "bias": "center",
+    "credibilityScore": 0.76,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "bbc-africa",
+    "name": "BBC Africa",
+    "url": "https://www.bbc.com/news/world/africa",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/africa/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "premium-times-ng",
+    "name": "Premium Times Nigeria",
+    "url": "https://www.premiumtimesng.com",
+    "rssUrl": "https://www.premiumtimesng.com/feed",
+    "bias": "center",
+    "credibilityScore": 0.65,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "korea-herald",
+    "name": "The Korea Herald",
+    "url": "https://www.koreaherald.com",
+    "rssUrl": "https://www.koreaherald.com/rss/020200000000.xml",
+    "bias": "center",
+    "credibilityScore": 0.72,
+    "tags": ["world", "politics", "economy"]
+  },
+  {
+    "id": "the-hindu",
+    "name": "The Hindu",
+    "url": "https://www.thehindu.com",
+    "rssUrl": "https://www.thehindu.com/feeder/default.rss",
+    "bias": "center-left",
+    "credibilityScore": 0.78,
+    "tags": ["world", "politics", "economy"]
+  },
+  {
+    "id": "times-of-india",
+    "name": "Times of India",
+    "url": "https://timesofindia.indiatimes.com",
+    "rssUrl": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
+    "bias": "center",
+    "credibilityScore": 0.65,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "dawn-pakistan",
+    "name": "Dawn (Pakistan)",
+    "url": "https://www.dawn.com",
+    "rssUrl": "https://www.dawn.com/feeds/home",
+    "bias": "center",
+    "credibilityScore": 0.72,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "global-times",
+    "name": "Global Times",
+    "url": "https://www.globaltimes.cn",
+    "rssUrl": "https://www.globaltimes.cn/rss/outbrain.xml",
+    "bias": "right",
+    "credibilityScore": 0.45,
+    "tags": ["world", "economy"]
+  },
+  {
+    "id": "bbc-asia",
+    "name": "BBC Asia",
+    "url": "https://www.bbc.com/news/world/asia",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/asia/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "vietnam-news",
+    "name": "Vietnam News",
+    "url": "https://vietnamnews.vn",
+    "rssUrl": "https://vietnamnews.vn/rss/feed.rss",
+    "bias": "center",
+    "credibilityScore": 0.6,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "ndtv",
+    "name": "NDTV",
+    "url": "https://www.ndtv.com",
+    "rssUrl": "https://feeds.feedburner.com/ndtvnews-top-stories",
+    "bias": "center",
+    "credibilityScore": 0.7,
+    "tags": ["world", "politics", "economy"]
+  },
+  {
+    "id": "tribune-pakistan",
+    "name": "The Express Tribune (Pakistan)",
+    "url": "https://tribune.com.pk",
+    "rssUrl": "https://tribune.com.pk/feed/home",
+    "bias": "center",
+    "credibilityScore": 0.65,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "livemint",
+    "name": "Livemint",
+    "url": "https://www.livemint.com",
+    "rssUrl": "https://www.livemint.com/rss/news",
+    "bias": "center",
+    "credibilityScore": 0.72,
+    "tags": ["economy", "world"]
+  },
+  {
+    "id": "deccan-herald",
+    "name": "Deccan Herald",
+    "url": "https://www.deccanherald.com",
+    "rssUrl": "https://www.deccanherald.com/rss/india",
+    "bias": "center-left",
+    "credibilityScore": 0.68,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "bbc-china",
+    "name": "BBC China",
+    "url": "https://www.bbc.com/news/world/asia/china",
+    "rssUrl": "https://www.bbc.co.uk/news/world/asia/china/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "abc-australia",
+    "name": "ABC Australia",
+    "url": "https://www.abc.net.au/news",
+    "rssUrl": "https://www.abc.net.au/news/feed/2942460/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.82,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "guardian-australia",
+    "name": "The Guardian Australia",
+    "url": "https://www.theguardian.com/au",
+    "rssUrl": "https://www.theguardian.com/au/rss",
+    "bias": "left",
+    "credibilityScore": 0.8,
+    "tags": ["world", "politics"]
+  },
+  {
+    "id": "bbc-latin-america",
+    "name": "BBC Latin America",
+    "url": "https://www.bbc.com/news/world/latin_america",
+    "rssUrl": "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml",
+    "bias": "center",
+    "credibilityScore": 0.88,
+    "tags": ["world", "politics"]
   }
 ]

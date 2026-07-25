@@ -42,6 +42,8 @@ import SrsProducts from './components/SrsProducts';
 import SrsDashboard from './components/SrsDashboard';
 import SrsAdvisor from './components/SrsAdvisor';
 import HelpGuide from './components/HelpGuide';
+import WorldMap from './components/WorldMap';
+import CountrySidebar from './components/CountrySidebar';
 import HealthIndicator from './components/HealthIndicator';
 import TickerSearch from './components/TickerSearch';
 import { searchTopics, getBreakingNews, getBreakingGraph, searchGraph, type GraphData } from './api';
@@ -103,6 +105,7 @@ export default function App() {
   const [showSrsDashboard, setShowSrsDashboard] = useState(false);
   const [showSrsAdvisor, setShowSrsAdvisor] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
@@ -565,32 +568,37 @@ export default function App() {
             {loading && page === 1 && <LoadingSkeleton />}
 
             {!loading && !loaded && (
-              <div className="text-center py-20">
-                <div className="text-6xl mb-4">🗺️</div>
-                <p className="text-gray-500 dark:text-gray-400 text-lg">
-                  Search a topic or click "Breaking News" to see coverage across the political spectrum.
-                </p>
-                <div className="flex justify-center gap-6 mt-8">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-2">
-                      <span className="text-2xl">🔍</span>
+              <>
+                <div className="mb-6">
+                  <WorldMap onSelectCountry={setSelectedCountry} />
+                </div>
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-4">🗺️</div>
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">
+                    Click a country on the map or search a topic to see coverage across the political spectrum.
+                  </p>
+                  <div className="flex justify-center gap-6 mt-8">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                        <span className="text-2xl">🔍</span>
+                      </div>
+                      <p className="text-xs text-gray-400">Search Any Topic</p>
                     </div>
-                    <p className="text-xs text-gray-400">Search Any Topic</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-2">
-                      <span className="text-2xl">⚡</span>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                        <span className="text-2xl">⚡</span>
+                      </div>
+                      <p className="text-xs text-gray-400">Breaking News</p>
                     </div>
-                    <p className="text-xs text-gray-400">Breaking News</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mx-auto mb-2">
-                      <span className="text-2xl">👁️</span>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                        <span className="text-2xl">👁️</span>
+                      </div>
+                      <p className="text-xs text-gray-400">Find Blindspots</p>
                     </div>
-                    <p className="text-xs text-gray-400">Find Blindspots</p>
                   </div>
                 </div>
-              </div>
+              </>
             )}
 
             {!loading && loaded && results.length === 0 && (
@@ -679,6 +687,13 @@ export default function App() {
         onClose={() => setSidebarOpen(false)}
         onAction={handleSidebarAction}
       />
+
+      {selectedCountry && (
+        <CountrySidebar
+          country={selectedCountry}
+          onClose={() => setSelectedCountry(null)}
+        />
+      )}
     </div>
   );
 }

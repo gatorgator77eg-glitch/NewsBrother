@@ -26,6 +26,26 @@ const DOMAIN_LEAN: Record<string, 'left' | 'center' | 'right'> = {
   'dailywire.com': 'right', 'theepochtimes.com': 'right',
   'justthenews.com': 'right', 'washingtontimes.com': 'right',
   'dailysignal.com': 'right', 'redstate.com': 'right', 'townhall.com': 'right',
+  'straitstimes.com': 'center', 'thediplomat.com': 'center', 'channelnewsasia.com': 'center',
+  'japantimes.co.jp': 'center', 'scmp.com': 'center', 'bangkokpost.com': 'center',
+  // Europe & Middle East
+  'lemonde.fr': 'left', 'france24.com': 'center', 'thelocal.com': 'center',
+  'middleeasteye.net': 'left',
+  // Europe
+  'rferl.org': 'center', 'euronews.com': 'center', 'express.co.uk': 'right',
+  'al-monitor.com': 'center', 'middleeastmonitor.com': 'left', 'arabnews.com': 'center',
+  'dailysabah.com': 'right',   'jpost.com': 'right', 'haaretz.com': 'left',
+  // Africa
+  'premiumtimesng.com': 'center',
+  // Asia-Pacific
+  'koreaherald.com': 'center', 'thehindu.com': 'left',
+  'timesofindia.indiatimes.com': 'center', 'dawn.com': 'center',
+  'globaltimes.cn': 'right', 'vietnamnews.vn': 'center',
+  'ndtv.com': 'center', 'tribune.com.pk': 'center',
+  'livemint.com': 'center',   'deccanherald.com': 'left',
+  // Oceania
+  'abc.net.au': 'center',
+  // Latin America
 };
 
 function classifyLean(domain: string): 'left' | 'center' | 'right' {

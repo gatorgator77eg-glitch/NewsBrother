@@ -41,6 +41,7 @@ import { srsRoutes } from './routes/srs';
 import { srsPortfolioRoutes } from './routes/srsPortfolio';
 import { srsSignalsRoutes } from './routes/srsSignals';
 import { srsAdvisorRoutes } from './routes/srsAdvisor';
+import { worldMapRoutes } from './routes/worldMap';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -101,6 +102,7 @@ app.use('/api/srs', srsRoutes);
 app.use('/api/srs', srsPortfolioRoutes);
 app.use('/api/srs', srsSignalsRoutes);
 app.use('/api/srs', srsAdvisorRoutes);
+app.use('/api/world-map', worldMapRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {
