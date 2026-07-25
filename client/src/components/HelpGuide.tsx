@@ -97,7 +97,7 @@ export default function HelpGuide({ onBack }: Props) {
       <SectionBlock id="overview" title="Overview" icon="🗺️" expanded={expanded.has('overview')} onToggle={() => toggle('overview')}>
         <SubSection title="What is this tool?">
           <p>Analytical | Map News is a political news aggregation and market intelligence platform. It pulls from 52 RSS sources across the political spectrum, stores articles in a local database, and provides analytics tools to understand how news relates to financial markets.</p>
-          <p><strong>Key capabilities:</strong> Cross-spectrum news search, left/right/center bias classification, sentiment analysis, stock price correlation, predictive intelligence (Janus), local GPU-powered AI, and SRS investment product analysis.</p>
+          <p><strong>Key capabilities:</strong> Cross-spectrum news search, left/right/center bias classification, sentiment analysis, stock price correlation, predictive intelligence (Janus), AI-powered analysis (Chat, Risk Radar, Narrative Decoder, Catalyst Engine, Sentiment Forecaster), local GPU-powered AI, and SRS investment product analysis.</p>
         </SubSection>
         <SubSection title="Navigation">
           <p>Click the <strong>hamburger menu</strong> (☰) in the top-left to open the sidebar. Every feature is organized under category groups. Click a group to expand it, click a feature to navigate there. The back arrow (←) in the top-left of each page returns to the home screen.</p>
@@ -190,6 +190,21 @@ export default function HelpGuide({ onBack }: Props) {
         <SubSection title="Watchlist">
           <p>Track specific tickers with real-time price updates. Add tickers from the global search or manually. Shows current price, daily change, and mini sparkline charts.</p>
         </SubSection>
+        <SubSection title="Stock Advisor">
+          <p>Multi-country recommendation engine analyzing 18 markets (G7, BRICS, financial hubs). Scores each ticker across 6 dimensions and generates BUY/SELL/HOLD signals with LLM-powered reasoning.</p>
+          <div className="space-y-1.5 mt-1">
+            <Metric name="Technical (25%)" formula="MA crossovers, RSI, MACD, Bollinger Bands, ADX, Stochastic" interpretation="Price-based signals. Golden/death crosses, overbought/oversold, trend strength." />
+            <Metric name="Sentiment (20%)" formula="Per-ticker GDELT tone from news archive" interpretation="News sentiment weighted by article count and recency." />
+            <Metric name="Volume (10%)" formula="Volume vs 20-day average" interpretation="Unusual volume confirms or contradicts price moves." />
+            <Metric name="Relative Strength (15%)" formula="Performance vs sector and market index" interpretation="Outperformance = strength. Underperformance = weakness." />
+            <Metric name="Macro (10%)" formula="Country-level economic indicators" interpretation="Interest rates, inflation, currency trends." />
+            <Metric name="Fundamentals (20%)" formula="P/E, P/B, dividend yield via yfinance" interpretation="Valuation metrics. Low P/E = potentially undervalued." />
+          </div>
+          <Faq items={[
+            { q: 'What is compare mode?', a: 'Select 2-6 countries to see side-by-side recommendations. Useful for cross-market rotation decisions.' },
+            { q: 'What are the signal badges?', a: 'BUY (green) = composite score > 65. SELL (red) = composite score < 35. HOLD (gray) = in between. Signal change arrows show if the recommendation improved or worsened vs last scan.' },
+          ]} />
+        </SubSection>
       </SectionBlock>
 
       {/* ═══ CORRELATION ═══ */}
@@ -275,6 +290,46 @@ export default function HelpGuide({ onBack }: Props) {
         </SubSection>
         <SubSection title="Heatmap">
           <p>Visual grid showing news velocity × price impact for multiple tickers. Darker/hotter cells = higher combined score. Use this to scan many stocks at once for opportunities.</p>
+        </SubSection>
+      </SectionBlock>
+
+      {/* ═══ AI INTELLIGENCE ═══ */}
+      <SectionBlock id="ai" title="AI Intelligence" icon="🧠" expanded={expanded.has('ai')} onToggle={() => toggle('ai')}>
+        <SubSection title="Overview">
+          <p>Five LLM-powered analysis tools that synthesize data from across the entire platform. Requires an LLM configured in Settings (Big Pickle is pre-configured and works out of the box — no API key needed).</p>
+        </SubSection>
+        <SubSection title="AI Analyst Chat">
+          <p>Conversational interface over all your data. Ask about any ticker, market trend, or political topic. The chat auto-detects tickers in your message and pulls relevant velocity, price impact, sentiment, and price data as context for the LLM.</p>
+          <Faq items={[
+            { q: 'How does it know about my data?', a: 'When you mention a ticker (e.g., "What about NVDA?"), it pulls live velocity scores, sentiment trends, recent headlines, and price data from the database, then feeds that context to the LLM.' },
+            { q: 'Does it work without a ticker?', a: 'Yes. Ask about any topic (e.g., "What are the biggest risks in markets right now?") and it pulls the latest top stories and sentiment shifts by country as context.' },
+          ]} />
+        </SubSection>
+        <SubSection title="AI Risk Radar">
+          <p>Multi-signal risk synthesis for any ticker. Enter a symbol to get a risk assessment combining velocity, sentiment polarization, source concentration, and tone volatility. Returns a risk summary, key concerns, tail-risk scenarios, and confidence level.</p>
+          <Metric name="Velocity Score" formula="today_articles / avg_30d_articles" interpretation="> 2 = unusual attention spike. > 5 = extreme event. Combined with source concentration to assess broad vs narrow coverage." />
+          <Metric name="Tone Volatility (σ)" formula="Std deviation of article tones over N days" interpretation="> 3 = polarized coverage (conflicting narratives). > 5 = chaotic messaging. Low σ = consensus." />
+          <Metric name="Source Concentration" formula="top_source_articles / total_articles (7d)" interpretation="> 50% = single-source dominated (unreliable signal). < 30% = broadly covered (more reliable)." />
+        </SubSection>
+        <SubSection title="AI Narrative Decoder">
+          <p>Cross-political intelligence. Enter a topic to see how left, center, and right sources frame it differently. Shows exclusive vocabulary per political lean, blindspot detection, and a balanced synthesis.</p>
+          <Faq items={[
+            { q: 'What are "exclusive words"?', a: 'Words that appear frequently in one political lean\'s headlines but not in others. They reveal framing differences — e.g., left might say "immigration crisis" while right says "border emergency".' },
+            { q: 'What are blindspots?', a: 'Topics that one political side is not covering at all. If left-leaning sources write about a topic but right-leaning sources don\'t (or vice versa), that\'s flagged as a blindspot.' },
+          ]} />
+        </SubSection>
+        <SubSection title="AI Catalyst Engine">
+          <p>Identifies what\'s driving a stock right now and what could drive it next. Analyzes news velocity spikes, tone shifts, source concentration, and sector context. Returns active catalysts, potential catalysts, catalyst risk, and a watch list.</p>
+          <Faq items={[
+            { q: 'What is a catalyst?', a: 'A specific news event or trend that is currently influencing a stock\'s price. Examples: earnings surprise, tariff announcement, analyst upgrade, sector rotation.' },
+            { q: 'What is single-source risk?', a: 'When a catalyst narrative comes from only one news source. If that source is wrong or biased, the catalyst thesis collapses. Broad multi-source coverage is more reliable.' },
+          ]} />
+        </SubSection>
+        <SubSection title="AI Sentiment Forecaster">
+          <p>Predictive narrative analysis. Enter a ticker or country to get a sentiment forecast based on 60-day historical trajectory, trend slope, volume momentum, and regime classification (fear/greed/transition).</p>
+          <Metric name="7-Day Trend Slope" formula="Linear regression slope of last 7 days of daily avg tone" interpretation="> 0.1 = improving sentiment. < -0.1 = deteriorating. > 0.2 or < -0.2 = strong directional move." />
+          <Metric name="Volume Trend" formula="(articles_last_7d - articles_prev_7d) / articles_prev_7d × 100" interpretation="Rising volume + rising tone = bullish confirmation. Rising volume + falling tone = bearish acceleration." />
+          <Metric name="Regime" formula="Classification based on current tone + slope direction" interpretation="greed = positive tone + improving. fear = negative tone + deteriorating. neutral = stable. transition = rapidly changing." />
         </SubSection>
       </SectionBlock>
 
@@ -399,8 +454,9 @@ export default function HelpGuide({ onBack }: Props) {
           <p>Theme (light/dark), default time range, and display preferences are saved to localStorage and persist across sessions.</p>
         </SubSection>
         <SubSection title="LLM Configuration">
-          <p>Configure AI providers for Deep Research and LocalGPU features. Supported providers:</p>
+          <p>Configure AI providers for the AI Intelligence suite, Deep Research, and LocalGPU features. The default configuration is <strong>Big Pickle (OpenCode Zen)</strong> — a free model that requires no API key and works out of the box. Supported providers:</p>
           <ul className="list-disc pl-5 space-y-1 text-xs">
+            <li><strong>OpenCode (Big Pickle)</strong> — Free, no API key needed. Pre-configured as default.</li>
             <li><strong>OpenAI</strong> — GPT-4, GPT-4o, etc. Requires API key.</li>
             <li><strong>Anthropic</strong> — Claude 3.5, Claude 3. Requires API key.</li>
             <li><strong>Ollama</strong> — Local models. No API key needed. Default: localhost:11434.</li>
@@ -408,13 +464,13 @@ export default function HelpGuide({ onBack }: Props) {
             <li><strong>Together AI</strong> — Open-source models via API. Requires API key.</li>
             <li><strong>Custom</strong> — Any OpenAI-compatible endpoint.</li>
           </ul>
-          <p className="mt-2">Use "Test Connection" to verify your configuration before using AI features.</p>
+          <p className="mt-2">Use "Test Connection" to verify your configuration before using AI features. The AI Intelligence suite (Chat, Risk Radar, Narrative Decoder, Catalyst Engine, Sentiment Forecaster) and the Daily Briefing AI Summary all use this default configuration.</p>
         </SubSection>
       </SectionBlock>
 
       {/* Footer */}
       <div className="text-center py-6 text-xs text-gray-400 dark:text-gray-500">
-        Analytical | Map News — Built with 52 RSS sources, 5,000+ tickers, and zero tracking.
+        Analytical | Map News — Built with 100 RSS sources, 5,000+ tickers, AI Intelligence, and zero tracking.
       </div>
     </div>
   );
