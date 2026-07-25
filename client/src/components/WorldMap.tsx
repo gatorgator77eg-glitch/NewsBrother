@@ -107,20 +107,21 @@ export default function WorldMap({ onSelectCountry }: WorldMapProps) {
   const maxCount = Math.max(...countries.map(c => c.articleCount), 1);
 
   return (
-    <div className="w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
-         style={{ height: '520px' }}>
+    <div className="w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
+         style={{ height: '520px', zIndex: 0 }}>
       <MapContainer
         center={[20, 0]}
         zoom={2}
         minZoom={2}
         maxZoom={18}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: '100%', width: '100%', background: '#1a1a2e' }}
         zoomControl={false}
         worldCopyJump={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://osm.org/copyright">OSM</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
         />
         <CursorZoomHandler />
         {countries.map(c => (
