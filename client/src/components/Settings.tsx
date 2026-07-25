@@ -14,6 +14,14 @@ const DEFAULT_SETTINGS: SettingsData = {
 
 const STORAGE_KEY = 'politicalNewsSettings';
 
+const BIAS_COLORS: Record<string, string> = {
+  left: 'bg-blue-100 text-blue-800',
+  'lean-left': 'bg-green-100 text-green-800',
+  center: 'bg-gray-100 text-gray-600',
+  'lean-right': 'bg-orange-100 text-orange-800',
+  right: 'bg-red-100 text-red-800',
+};
+
 const TOPIC_FILTERS = [
   { id: null, label: 'None' },
   { id: 'economy', label: 'Economy' },
@@ -38,6 +46,16 @@ interface LLMConfig {
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface FeedItem {
+  id: string;
+  name: string;
+  url: string;
+  rss_url: string;
+  bias: string;
+  credibility_score: number;
+  tags: string[];
 }
 
 const PROVIDERS = [
@@ -69,12 +87,22 @@ export default function Settings({ onBack }: Props) {
   const [testingId, setTestingId] = useState<string | null>(null);
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
 
+  const [feeds, setFeeds] = useState<FeedItem[]>([]);
+  const [feedsLoading, setFeedsLoading] = useState(true);
+  const [feedFilter, setFeedFilter] = useState<string | null>(null);
+  const [showFeedForm, setShowFeedForm] = useState(false);
+  const [editingFeedId, setEditingFeedId] = useState<string | null>(null);
+  const [feedForm, setFeedForm] = useState({ id: '', name: '', url: '', rss_url: '', bias: 'center', credibility_score: 0.5 });
+  const [feedError, setFeedError] = useState<string | null>(null);
+  const [feedSaving, setFeedSaving] = useState(false);
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(stored) });
     } catch {}
     fetchConfigs();
+    fetchFeeds();
   }, []);
 
   const update = <K extends keyof SettingsData>(key: K, value: SettingsData[K]) => {
@@ -151,6 +179,52 @@ export default function Settings({ onBack }: Props) {
       .finally(() => setTestingId(null));
   };
 
+  const fetchFeeds = () => {
+    fetch('/api/feeds').then(r => r.json()).then(d => { setFeeds(d || []); setFeedsLoading(false); }).catch(() => setFeedsLoading(false));
+  };
+
+  const filteredFeeds = feedFilter ? feeds.filter(f => f.bias === feedFilter) : feeds;
+  const biasCounts = feeds.reduce((acc: Record<string, number>, f) => { acc[f.bias] = (acc[f.bias] || 0) + 1; return acc; }, {} as Record<string, number>);
+
+  const startAddFeed = () => {
+    setEditingFeedId(null);
+    setFeedForm({ id: '', name: '', url: '', rss_url: '', bias: 'center', credibility_score: 0.5 });
+    setFeedError(null);
+    setShowFeedForm(true);
+  };
+
+  const startEditFeed = (f: FeedItem) => {
+    setEditingFeedId(f.id);
+    setFeedForm({ id: f.id, name: f.name, url: f.url, rss_url: f.rss_url, bias: f.bias, credibility_score: f.credibility_score });
+    setFeedError(null);
+    setShowFeedForm(true);
+  };
+
+  const saveFeed = async () => {
+    setFeedSaving(true);
+    setFeedError(null);
+    try {
+      const isEdit = !!editingFeedId;
+      const url = isEdit ? `/api/feeds/${editingFeedId}` : '/api/feeds';
+      const method = isEdit ? 'PUT' : 'POST';
+      const body = isEdit
+        ? { name: feedForm.name, url: feedForm.url, rss_url: feedForm.rss_url, bias: feedForm.bias, credibility_score: feedForm.credibility_score }
+        : feedForm;
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) { setFeedError(data.error || 'Failed to save'); return; }
+      setShowFeedForm(false);
+      fetchFeeds();
+    } catch { setFeedError('Network error'); }
+    setFeedSaving(false);
+  };
+
+  const deleteFeed = async (id: string) => {
+    if (!confirm('Delete this RSS source?')) return;
+    await fetch(`/api/feeds/${id}`, { method: 'DELETE' });
+    fetchFeeds();
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
@@ -166,6 +240,137 @@ export default function Settings({ onBack }: Props) {
           <span className="ml-auto text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">Saved</span>
         )}
       </div>
+
+      {/* ─── RSS Feed Manager ─────────────────────── */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">RSS Sources</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{feeds.length} feeds configured</p>
+          </div>
+          <button onClick={startAddFeed}
+            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
+            + Add Feed
+          </button>
+        </div>
+
+        <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex gap-1.5 flex-wrap">
+          <button onClick={() => setFeedFilter(null)}
+            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${!feedFilter ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-800' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}>
+            All ({feeds.length})
+          </button>
+          {(['left', 'lean-left', 'center', 'lean-right', 'right'] as const).map(bias => (
+            biasCounts[bias] ? (
+              <button key={bias} onClick={() => setFeedFilter(feedFilter === bias ? null : bias)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${feedFilter === bias ? 'bg-gray-800 text-white' : `${BIAS_COLORS[bias]} hover:opacity-80`}`}>
+                {bias.replace('-', ' ')} ({biasCounts[bias]})
+              </button>
+            ) : null
+          ))}
+        </div>
+
+        {feedsLoading ? (
+          <div className="px-5 py-8 text-center text-gray-400 text-sm">Loading feeds...</div>
+        ) : filteredFeeds.length === 0 && !showFeedForm ? (
+          <div className="px-5 py-8 text-center text-gray-400 text-sm">
+            {feeds.length === 0 ? 'No feeds yet. Click "Add Feed" to create one.' : 'No feeds match this filter.'}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-[500px] overflow-y-auto">
+            {filteredFeeds.map(f => (
+              <div key={f.id} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 ${BIAS_COLORS[f.bias]}`}>
+                    {f.bias.replace('-', ' ').toUpperCase()}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{f.name}</p>
+                    <p className="text-[11px] text-gray-400 truncate">{f.rss_url}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="w-10 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden hidden sm:block">
+                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(f.credibility_score || 0.5) * 100}%` }} />
+                    </div>
+                    <span className="text-[9px] text-gray-400 hidden sm:inline">{Math.round((f.credibility_score || 0.5) * 100)}%</span>
+                    <button onClick={() => startEditFeed(f)}
+                      className="px-2 py-1 text-[11px] rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+                      Edit
+                    </button>
+                    <button onClick={() => deleteFeed(f.id)}
+                      className="px-2 py-1 text-[11px] rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors">
+                      Del
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showFeedForm && (
+          <div className="px-5 py-5 bg-gray-50 dark:bg-gray-750 border-t border-gray-100 dark:border-gray-700 space-y-4">
+            {feedError && (
+              <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded-lg">{feedError}</div>
+            )}
+            {!editingFeedId && (
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Source ID</label>
+                <input value={feedForm.id} onChange={e => setFeedForm(f => ({ ...f, id: e.target.value }))}
+                  placeholder="e.g. reuters-world" disabled={!!editingFeedId}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50" />
+                <p className="text-[10px] text-gray-400 mt-1">Unique identifier — cannot be changed later</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Name</label>
+                <input value={feedForm.name} onChange={e => setFeedForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Reuters World"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Bias</label>
+                <select value={feedForm.bias} onChange={e => setFeedForm(f => ({ ...f, bias: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                  <option value="left">Left</option>
+                  <option value="lean-left">Lean Left</option>
+                  <option value="center">Center</option>
+                  <option value="lean-right">Lean Right</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Website URL</label>
+              <input value={feedForm.url} onChange={e => setFeedForm(f => ({ ...f, url: e.target.value }))}
+                placeholder="https://www.reuters.com"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">RSS Feed URL</label>
+              <input value={feedForm.rss_url} onChange={e => setFeedForm(f => ({ ...f, rss_url: e.target.value }))}
+                placeholder="https://www.reuters.com/rss/world"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Credibility Score ({Math.round(feedForm.credibility_score * 100)}%)</label>
+              <input type="range" min="0" max="1" step="0.05" value={feedForm.credibility_score}
+                onChange={e => setFeedForm(f => ({ ...f, credibility_score: parseFloat(e.target.value) }))}
+                className="w-full accent-blue-600" />
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <button onClick={saveFeed} disabled={!feedForm.name || !feedForm.url || !feedForm.rss_url || feedSaving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+                {feedSaving ? 'Saving...' : editingFeedId ? 'Update' : 'Add Feed'}
+              </button>
+              <button onClick={() => setShowFeedForm(false)}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* ─── LLM Configuration ─────────────────────── */}
       <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">

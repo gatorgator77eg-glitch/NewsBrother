@@ -192,6 +192,34 @@ export function getAllSources() {
   return resultToObjects(result);
 }
 
+export function getSourceById(id: string) {
+  const result = db.exec(`SELECT * FROM sources WHERE id = ?`, [id]);
+  return resultToObjects(result)[0] || null;
+}
+
+export function deleteSource(id: string): boolean {
+  db.run(`DELETE FROM sources WHERE id = ?`, [id]);
+  const changes = db.getRowsModified();
+  scheduleDbSave();
+  return changes > 0;
+}
+
+export function updateSource(id: string, fields: { name?: string; url?: string; rss_url?: string; bias?: string; credibility_score?: number; tags?: string[] }) {
+  const sets: string[] = [];
+  const vals: any[] = [];
+  if (fields.name !== undefined) { sets.push('name = ?'); vals.push(fields.name); }
+  if (fields.url !== undefined) { sets.push('url = ?'); vals.push(fields.url); }
+  if (fields.rss_url !== undefined) { sets.push('rss_url = ?'); vals.push(fields.rss_url); }
+  if (fields.bias !== undefined) { sets.push('bias = ?'); vals.push(fields.bias); }
+  if (fields.credibility_score !== undefined) { sets.push('credibility_score = ?'); vals.push(fields.credibility_score); }
+  if (fields.tags !== undefined) { sets.push('tags = ?'); vals.push(JSON.stringify(fields.tags)); }
+  if (sets.length === 0) return false;
+  vals.push(id);
+  db.run(`UPDATE sources SET ${sets.join(', ')} WHERE id = ?`, vals);
+  scheduleDbSave();
+  return true;
+}
+
 export function getUnclusteredArticles() {
   const result = db.exec(
     `SELECT a.*, s.bias, s.name as source_name
