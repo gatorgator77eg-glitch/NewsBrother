@@ -225,6 +225,56 @@ export default function Settings({ onBack }: Props) {
     fetchFeeds();
   };
 
+  const downloadJson = (data: any, filename: string) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importFromJson = async (file: File, type: 'feeds' | 'llm') => {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (type === 'feeds') {
+        const items = Array.isArray(data) ? data : data.feeds || [];
+        const res = await fetch('/api/feeds/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feeds: items, mode: 'upsert' }),
+        });
+        const result = await res.json();
+        alert(`Imported ${result.imported} of ${result.total} feeds (${result.skipped} skipped)`);
+        fetchFeeds();
+      } else {
+        const items = Array.isArray(data) ? data : data.configs || [];
+        const res = await fetch('/api/llm-config/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ configs: items }),
+        });
+        const result = await res.json();
+        alert(`Imported ${result.imported} of ${result.total} LLM configs`);
+        fetchConfigs();
+      }
+    } catch (err) {
+      alert('Import failed: invalid JSON file');
+    }
+  };
+
+  const exportFeeds = () => downloadJson({ feeds, exportedAt: new Date().toISOString() }, 'analytical-feeds.json');
+  const exportConfigs = () => {
+    const safeConfigs = configs.map(({ apiKey, ...rest }) => rest);
+    downloadJson({ configs: safeConfigs, exportedAt: new Date().toISOString() }, 'analytical-llm-configs.json');
+  };
+  const exportAll = () => {
+    const safeConfigs = configs.map(({ apiKey, ...rest }) => rest);
+    downloadJson({ feeds, configs: safeConfigs, exportedAt: new Date().toISOString() }, 'analytical-settings.json');
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
@@ -240,6 +290,63 @@ export default function Settings({ onBack }: Props) {
           <span className="ml-auto text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">Saved</span>
         )}
       </div>
+
+      {/* ─── Data Management ─────────────────────── */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Data Management</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Export or import your configuration</p>
+        </div>
+        <div className="px-5 py-4 grid grid-cols-3 gap-3">
+          <div className="text-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">RSS Feeds</p>
+            <div className="flex gap-1.5 justify-center">
+              <button onClick={exportFeeds}
+                className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Export
+              </button>
+              <label className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer">
+                Import
+                <input type="file" accept=".json" className="hidden" onChange={e => e.target.files?.[0] && importFromJson(e.target.files[0], 'feeds')} />
+              </label>
+            </div>
+          </div>
+          <div className="text-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">LLM Configs</p>
+            <div className="flex gap-1.5 justify-center">
+              <button onClick={exportConfigs}
+                className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Export
+              </button>
+              <label className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer">
+                Import
+                <input type="file" accept=".json" className="hidden" onChange={e => e.target.files?.[0] && importFromJson(e.target.files[0], 'llm')} />
+              </label>
+            </div>
+          </div>
+          <div className="text-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Everything</p>
+            <div className="flex gap-1.5 justify-center">
+              <button onClick={exportAll}
+                className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Export
+              </button>
+              <label className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer">
+                Import
+                <input type="file" accept=".json" className="hidden" onChange={e => e.target.files?.[0] && (async () => {
+                  const text = await e.target.files![0].text();
+                  const data = JSON.parse(text);
+                  if (data.feeds) await importFromJson(new File([JSON.stringify(data.feeds)], 'feeds.json'), 'feeds');
+                  if (data.configs) await importFromJson(new File([JSON.stringify(data.configs)], 'configs.json'), 'llm');
+                })()} />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 pb-3">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">Exported JSON does not include API keys for security. Imported feeds are merged by ID.</p>
+        </div>
+      </section>
 
       {/* ─── RSS Feed Manager ─────────────────────── */}
       <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">

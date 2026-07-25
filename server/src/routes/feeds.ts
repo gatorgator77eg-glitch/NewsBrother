@@ -42,3 +42,28 @@ feedsRoutes.delete('/feeds/:id', async (req, res) => {
   deleteSource(req.params.id);
   res.json({ ok: true });
 });
+
+feedsRoutes.post('/feeds/bulk', async (req, res) => {
+  const { feeds, mode = 'upsert' } = req.body;
+  if (!Array.isArray(feeds) || feeds.length === 0) {
+    return res.status(400).json({ error: 'feeds array is required' });
+  }
+  let imported = 0;
+  let skipped = 0;
+  for (const f of feeds) {
+    if (!f.id || !f.name || !f.url || !f.rss_url || !f.bias) { skipped++; continue; }
+    const existing = getSourceById(f.id);
+    if (existing && mode === 'skip') { skipped++; continue; }
+    insertSource({
+      id: f.id,
+      name: f.name,
+      url: f.url,
+      rss_url: f.rss_url,
+      bias: f.bias,
+      credibility_score: f.credibility_score ?? 0.5,
+      tags: f.tags || [],
+    });
+    imported++;
+  }
+  res.json({ ok: true, imported, skipped, total: feeds.length });
+});

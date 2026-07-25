@@ -217,6 +217,38 @@ llmConfigRoutes.post('/:id/test', async (req: Request, res: Response) => {
   }
 });
 
+// Bulk import configs
+llmConfigRoutes.post('/bulk', async (req: Request, res: Response) => {
+  try {
+    const { configs } = req.body;
+    if (!Array.isArray(configs) || configs.length === 0) {
+      return res.status(400).json({ error: 'configs array is required' });
+    }
+    const db = await getDb();
+    db.run(ensureTable());
+    let imported = 0;
+    const hasDefault = db.exec('SELECT COUNT(*) FROM llm_configs WHERE is_default = 1');
+    let needsDefault = (hasDefault[0]?.values[0]?.[0] as number) === 0;
+    for (const c of configs) {
+      if (!c.name || !c.url || !c.model) continue;
+      const id = crypto.randomUUID();
+      const isDef = needsDefault ? 1 : 0;
+      if (needsDefault) needsDefault = false;
+      db.run(
+        `INSERT INTO llm_configs (id, name, provider, url, api_key, model, max_tokens, temperature, is_default)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, c.name, c.provider || 'openai', c.url, c.apiKey || '', c.model, c.maxTokens || 4096, c.temperature ?? 0.7, isDef]
+      );
+      imported++;
+    }
+    log.info('Bulk imported LLM configs', { count: imported });
+    res.json({ ok: true, imported, total: configs.length });
+  } catch (err: any) {
+    log.error('Failed to bulk import LLM configs', { error: err.message });
+    res.status(500).json({ error: 'Failed to import configs' });
+  }
+});
+
 // Get default config (for other features to use)
 llmConfigRoutes.get('/default', async (_req: Request, res: Response) => {
   try {
