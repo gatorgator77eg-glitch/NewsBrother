@@ -1160,3 +1160,13 @@ export async function aiSentimentForecaster(params: { symbol?: string; country?:
   if (!res.ok) throw new Error('AI sentiment forecaster failed');
   return res.json();
 }
+
+export async function aiSmartDoc(document: string, question: string, history?: { role: string; content: string }[]): Promise<any> {
+  const res = await fetch(`${API_BASE}/ai/smart-doc`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document, question, history }),
+  });
+  if (!res.ok) throw new Error('AI smart doc failed');
+  return res.json();
+}

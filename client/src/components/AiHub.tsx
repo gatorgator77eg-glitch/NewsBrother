@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { aiChat, aiRiskRadar, aiNarrativeDecoder, aiCatalystEngine, aiSentimentForecaster } from '../api';
+import { aiChat, aiRiskRadar, aiNarrativeDecoder, aiCatalystEngine, aiSentimentForecaster, aiSmartDoc } from '../api';
 
-type Tab = 'chat' | 'risk' | 'narrative' | 'catalyst' | 'forecast';
+type Tab = 'chat' | 'risk' | 'narrative' | 'catalyst' | 'forecast' | 'doc';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'chat', label: 'Analyst Chat', icon: '💬' },
+  { id: 'doc', label: 'Smart Doc', icon: '📄' },
   { id: 'risk', label: 'Risk Radar', icon: '⚠️' },
   { id: 'narrative', label: 'Narrative Decoder', icon: '📰' },
   { id: 'catalyst', label: 'Catalyst Engine', icon: '⚡' },
@@ -279,6 +280,107 @@ function NarrativeTab() {
   );
 }
 
+// ── Smart Doc Tab ────────────────────────────────────────────────────────────
+
+function SmartDocTab() {
+  const [doc, setDoc] = useState('');
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+  const docReady = doc.trim().length > 20;
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const ask = async () => {
+    if (!input.trim() || loading || !docReady) return;
+    const q = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: q }]);
+    setLoading(true);
+    try {
+      const history = messages.map(m => ({ role: m.role, content: m.content }));
+      const data = await aiSmartDoc(doc, q, history);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.answer || data.reason || 'No response.' }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Error: failed to get response.' }]);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          Paste or type your document below
+          {docReady && <span className="ml-2 text-green-500">✓ {doc.length.toLocaleString()} chars</span>}
+        </label>
+        <textarea
+          value={doc}
+          onChange={e => setDoc(e.target.value)}
+          placeholder="Paste a report, article, earnings call transcript, contract, research paper, or any text you want to analyze..."
+          className="w-full h-40 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono"
+        />
+      </div>
+
+      {docReady && (
+        <div className="flex flex-col h-[45vh]">
+          <div className="flex-1 overflow-y-auto space-y-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl mb-3">
+            {messages.length === 0 && (
+              <div className="text-center text-gray-400 dark:text-gray-500 py-8">
+                <div className="text-3xl mb-2">📄</div>
+                <p className="text-sm">Document loaded. Ask anything about it.</p>
+                <div className="flex flex-wrap justify-center gap-2 mt-3">
+                  {['Summarize this', 'What are the key points?', 'Find any risks or issues', 'What is missing?'].map(q => (
+                    <button key={q} onClick={() => { setInput(q); }}
+                      className="text-xs px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-600 dark:text-gray-400 hover:border-blue-400 transition-colors">
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+                  m.role === 'user'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm'
+                }`}>
+                  <div dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />Analyzing...
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={endRef} />
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && ask()}
+              placeholder="Ask about this document..."
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button onClick={ask} disabled={loading || !input.trim()}
+              className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-40 transition-colors">
+              Ask
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Component ──────────────────────────────────────────────────────────
 
 export default function AiHub({ onBack }: { onBack: () => void }) {
@@ -310,6 +412,8 @@ export default function AiHub({ onBack }: { onBack: () => void }) {
       </div>
 
       {tab === 'chat' && <ChatTab />}
+
+      {tab === 'doc' && <SmartDocTab />}
 
       {tab === 'risk' && (
         <AnalysisTab title="Risk Radar" icon="⚠️" placeholder="e.g. NVDA, TSLA, AAPL" fieldLabel="Ticker Symbol"

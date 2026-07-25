@@ -588,3 +588,38 @@ Be quantitative. Reference specific tone values and trends.`;
     res.json({ analysis: null, reason: err.message });
   }
 });
+
+// ── 6. Smart Doc ────────────────────────────────────────────────────────────
+
+aiRoutes.post('/smart-doc', async (req: Request, res: Response) => {
+  try {
+    const { document, question, history } = req.body as {
+      document: string; question: string;
+      history?: { role: 'user' | 'assistant'; content: string }[];
+    };
+    if (!document?.trim()) return res.status(400).json({ error: 'document required' });
+    if (!question?.trim()) return res.status(400).json({ error: 'question required' });
+
+    const trimmed = document.length > 15000 ? document.slice(0, 15000) + '\n\n[Document truncated at 15,000 characters]' : document;
+
+    const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      { role: 'system', content: 'You are a document analyst. Answer questions based ONLY on the provided document. If the document doesn\'t contain enough information to answer, say so. Be specific and quote relevant parts when possible.' },
+      { role: 'user', content: `DOCUMENT:\n${trimmed}\n\n---\n\nNow answer questions about this document.` },
+    ];
+
+    if (history?.length) {
+      for (const msg of history.slice(-10)) {
+        messages.push({ role: msg.role, content: msg.content });
+      }
+    }
+
+    messages.push({ role: 'user', content: question });
+
+    const result = await askLlm(messages, { maxTokens: 1024, temperature: 0.3 });
+    if (result.text === null) return res.json({ answer: null, reason: result.reason });
+    res.json({ answer: result.text, model: result.model });
+  } catch (err: any) {
+    log.error('Smart doc failed', { error: err.message });
+    res.json({ answer: null, reason: err.message });
+  }
+});

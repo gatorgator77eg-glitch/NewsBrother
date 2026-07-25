@@ -382,6 +382,7 @@ export default function App() {
         setShowStockAdvisor(true);
         break;
       case 'ai-chat':
+      case 'ai-doc':
       case 'ai-risk':
       case 'ai-narrative':
       case 'ai-catalyst':
