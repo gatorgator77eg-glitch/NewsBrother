@@ -117,6 +117,42 @@ export default function Settings({ onBack }: Props) {
   const [tickerSaving, setTickerSaving] = useState(false);
   const [tickerImportMode, setTickerImportMode] = useState<'upsert' | 'replace'>('upsert');
 
+  const [setupRunning, setSetupRunning] = useState(false);
+  const [setupSteps, setSetupSteps] = useState<{ id: string; label: string; status: string; detail?: string }[]>([]);
+  const [setupError, setSetupError] = useState<string | null>(null);
+
+  const pollSetupStatus = () => {
+    fetch('/api/setup/status')
+      .then(r => r.json())
+      .then(d => {
+        setSetupRunning(d.running);
+        setSetupSteps(d.steps || []);
+        if (d.error) setSetupError(d.error);
+        if (d.running) setTimeout(pollSetupStatus, 2000);
+      })
+      .catch(() => {});
+  };
+
+  const startSetup = () => {
+    setSetupRunning(true);
+    setSetupError(null);
+    setSetupSteps([]);
+    fetch('/api/setup/initialize', { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { setSetupError(d.error); setSetupRunning(false); return; }
+        setTimeout(pollSetupStatus, 1000);
+      })
+      .catch(e => { setSetupError(e.message); setSetupRunning(false); });
+  };
+
+  useEffect(() => {
+    fetch('/api/setup/status')
+      .then(r => r.json())
+      .then(d => { if (d.running) { setSetupRunning(true); setSetupSteps(d.steps || []); pollSetupStatus(); } })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -391,6 +427,61 @@ export default function Settings({ onBack }: Props) {
           <span className="ml-auto text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">Saved</span>
         )}
       </div>
+
+      {/* ─── First-Time Setup ─────────────────────── */}
+      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl shadow-sm overflow-hidden border border-blue-100 dark:border-blue-800/30">
+        <div className="px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">First-Time Setup</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Initialize all data sources — RSS feeds, news archive, stock tickers, SRS funds, and more</p>
+            </div>
+            {!setupRunning && setupSteps.length === 0 && (
+              <button onClick={startSetup}
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap">
+                Initialize Everything
+              </button>
+            )}
+            {!setupRunning && setupSteps.length > 0 && (
+              <button onClick={startSetup}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Re-run Setup
+              </button>
+            )}
+          </div>
+
+          {setupError && (
+            <div className="mt-3 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded-lg">{setupError}</div>
+          )}
+
+          {setupRunning && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+              <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-600 dark:border-blue-400 border-t-transparent" />
+              Initializing...
+            </div>
+          )}
+
+          {setupSteps.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              {setupSteps.map(step => (
+                <div key={step.id} className="flex items-center gap-2 text-xs">
+                  <span className="w-4 text-center shrink-0">
+                    {step.status === 'done' && <span className="text-green-500">&#10003;</span>}
+                    {step.status === 'running' && <span className="animate-spin inline-block w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full" />}
+                    {step.status === 'error' && <span className="text-red-500">&#10007;</span>}
+                    {step.status === 'skipped' && <span className="text-yellow-500">&#8211;</span>}
+                    {step.status === 'pending' && <span className="text-gray-300 dark:text-gray-600">&#9675;</span>}
+                  </span>
+                  <span className={`${step.status === 'done' ? 'text-green-700 dark:text-green-400' : step.status === 'error' ? 'text-red-700 dark:text-red-400' : step.status === 'running' ? 'text-blue-700 dark:text-blue-400 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {step.label}
+                  </span>
+                  {step.detail && <span className="text-gray-400 dark:text-gray-500 ml-auto truncate max-w-[200px]">{step.detail}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ─── Data Management ─────────────────────── */}
       <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">

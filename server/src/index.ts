@@ -46,6 +46,7 @@ import { recommendationRoutes } from './routes/recommendations';
 import { aiRoutes } from './routes/ai';
 import { chatbotRoutes } from './routes/chatbot';
 import { experimentationRoutes } from './routes/experimentation';
+import { setupRoutes } from './routes/setup';
 import { getNewsArchiveDb } from './newsArchive/db';
 import { getDb } from './db';
 import { ingestAll } from './ingestor';
@@ -111,6 +112,7 @@ app.use('/api', recommendationRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api', chatbotRoutes);
 app.use('/api', experimentationRoutes);
+app.use('/api', setupRoutes);
 
 app.get('/api/health', async (_req, res) => {
   try {
