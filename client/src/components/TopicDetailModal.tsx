@@ -81,7 +81,7 @@ export default function TopicDetailModal({ topicId, onClose, onCompare }: Props)
           </div>
         )}
 
-        <div className="grid grid-cols-5 gap-3 p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-6">
           {BIAS_COLUMNS.map((bias) => {
             const style = BIAS_STYLES[bias];
             const articles = topic.articles[bias] || [];

@@ -234,7 +234,7 @@ function NarrativeTab() {
       </div>
 
       {data?.data && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {(['left', 'center', 'right'] as const).map(lean => {
             const d = data.data[lean];
             return (
@@ -419,7 +419,7 @@ export default function AiHub({ onBack }: { onBack: () => void }) {
         <AnalysisTab title="Risk Radar" icon="⚠️" placeholder="e.g. NVDA, TSLA, AAPL" fieldLabel="Ticker Symbol"
           onRun={async (sym) => { const d = await aiRiskRadar(sym); return d; }}>
           {(data) => data && (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm text-center">
                 <div className="text-xs text-gray-400">Velocity</div>
                 <div className={`text-xl font-bold ${data.velocityScore > 2 ? 'text-red-500' : data.velocityScore > 1 ? 'text-amber-500' : 'text-green-500'}`}>
@@ -474,7 +474,7 @@ export default function AiHub({ onBack }: { onBack: () => void }) {
             return aiSentimentForecaster(isTicker ? { symbol: val.toUpperCase() } : { country: val });
           }}>
           {(data) => data && (
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm text-center">
                 <div className="text-xs text-gray-400">Regime</div>
                 <div className={`text-lg font-bold ${

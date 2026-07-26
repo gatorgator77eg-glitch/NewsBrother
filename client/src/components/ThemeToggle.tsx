@@ -12,6 +12,15 @@ export default function ThemeToggle() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem('theme', dark ? 'dark' : 'light');
+    // Sync with Settings storage
+    try {
+      const stored = localStorage.getItem('politicalNewsSettings');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.theme = dark ? 'dark' : 'light';
+        localStorage.setItem('politicalNewsSettings', JSON.stringify(parsed));
+      }
+    } catch {}
   }, [dark]);
 
   return (

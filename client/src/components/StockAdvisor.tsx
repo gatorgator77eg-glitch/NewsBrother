@@ -90,7 +90,7 @@ function signalColor(signal: string): string {
   return 'text-gray-400';
 }
 
-export default function StockAdvisor({ onBack }: { onBack: () => void }) {
+export default function StockAdvisor({ onBack, aiEnabled }: { onBack: () => void; aiEnabled?: boolean }) {
   const [summaries, setSummaries] = useState<CountrySummary[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<CountryDetail | null>(null);
@@ -409,7 +409,7 @@ export default function StockAdvisor({ onBack }: { onBack: () => void }) {
                     </h3>
                     <div className="space-y-2">
                       {detail.topBuy.length > 0 ? detail.topBuy.map(s => (
-                        <RecommendationCard key={s.symbol} stock={s} />
+                        <RecommendationCard key={s.symbol} stock={s} countryCode={selectedCode} countryName={detail.country.name} aiEnabled={aiEnabled} />
                       )) : (
                         <p className="text-xs text-gray-500 py-4 text-center">No buy signals detected</p>
                       )}
@@ -424,7 +424,7 @@ export default function StockAdvisor({ onBack }: { onBack: () => void }) {
                     </h3>
                     <div className="space-y-2">
                       {detail.topSell.length > 0 ? detail.topSell.map(s => (
-                        <RecommendationCard key={s.symbol} stock={s} />
+                        <RecommendationCard key={s.symbol} stock={s} countryCode={selectedCode} countryName={detail.country.name} aiEnabled={aiEnabled} />
                       )) : (
                         <p className="text-xs text-gray-500 py-4 text-center">No sell signals detected</p>
                       )}

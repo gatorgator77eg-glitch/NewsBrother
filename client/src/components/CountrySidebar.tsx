@@ -57,7 +57,7 @@ export default function CountrySidebar({ country, onClose }: CountrySidebarProps
   }
 
   return (
-    <div className="fixed right-0 top-0 h-full w-[420px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl z-50 flex flex-col animate-slide-in-right">
+    <div className="fixed right-0 top-0 h-full w-full sm:w-[420px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl z-50 flex flex-col animate-slide-in-right">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
         <div>

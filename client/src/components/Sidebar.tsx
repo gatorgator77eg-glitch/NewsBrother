@@ -17,146 +17,11 @@ export interface MenuGroup {
 
 type MenuEntry = MenuItem | MenuGroup | { divider: string };
 
-const MENU: MenuEntry[] = [
-  { id: 'home', label: 'Home', icon: '🏠', action: 'home' },
-  {
-    id: 'news', label: 'News & Analysis', icon: '📰',
-    children: [
-      { id: 'briefing', label: 'Daily Briefing', icon: '📋', action: 'briefing' },
-      { id: 'search', label: 'Search', icon: '🔍', action: 'search' },
-      { id: 'feeds', label: 'RSS Sources', icon: '📡', action: 'feeds' },
-      {
-        id: 'news-analysis', label: 'Analysis', icon: '📊',
-        children: [
-          { id: 'coverage', label: 'Coverage', icon: '📊', action: 'coverage' },
-          { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
-          { id: 'timeline', label: 'Timeline', icon: '🕐', action: 'timeline' },
-          { id: 'bias-compare', label: 'Bias Comparator', icon: '⚖️', action: 'bias-compare' },
-        ],
-      },
-      {
-        id: 'news-data', label: 'Data', icon: '📈',
-        children: [
-          { id: 'news-vs-price', label: 'News vs Price', icon: '📈', action: 'news-vs-price' },
-          { id: 'news-archive', label: 'News Archive', icon: '🗄️', action: 'news-archive' },
-          { id: 'sentiment', label: 'Sentiment', icon: '🎭', action: 'sentiment' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'market', label: 'Market', icon: '💰',
-    children: [
-      { id: 'stocks', label: 'Stock Library', icon: '📊', action: 'stocks' },
-      { id: 'analytics', label: 'Market Analytics', icon: '🔍', action: 'analytics' },
-      { id: 'stock-advisor', label: 'Stock Advisor', icon: '🎯', action: 'stock-advisor' },
-      { id: 'watchlist', label: 'Watchlist', icon: '💼', action: 'watchlist' },
-    ],
-  },
-  {
-    id: 'correlation', label: 'Correlation', icon: '🔗',
-    children: [
-      { id: 'corr-ticker', label: 'Ticker Analysis', icon: '🎯', action: 'correlation' },
-      { id: 'corr-heatmap', label: 'Sector Heatmap', icon: '🗺️', action: 'correlation' },
-      { id: 'corr-narrative', label: 'Narrative Strength', icon: '📊', action: 'correlation' },
-    ],
-  },
-  {
-    id: 'janus', label: 'Janus Intelligence', icon: '👁️',
-    children: [
-      {
-        id: 'janus-intel', label: 'Intelligence', icon: '🎯',
-        children: [
-          { id: 'janus-command', label: 'Command Center', icon: '🎯', action: 'janus-command' },
-          { id: 'janus-echo', label: 'Echo Chamber', icon: '🔊', action: 'janus-echo' },
-          { id: 'janus-volatility', label: 'Volatility Radar', icon: '⚡', action: 'janus-volatility' },
-          { id: 'janus-shockwave', label: 'Shockwave Backtest', icon: '💥', action: 'janus-shockwave' },
-        ],
-      },
-      {
-        id: 'janus-research-group', label: 'Research', icon: '🔬',
-        children: [
-          { id: 'janus-credibility', label: 'Credibility', icon: '🏅', action: 'janus-credibility' },
-          { id: 'janus-research', label: 'Deep Research', icon: '🔬', action: 'janus-research' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'localgpu', label: 'LocalGPU', icon: '🖥️',
-    children: [
-      {
-        id: 'gpu-hardware', label: 'Hardware', icon: '📊',
-        children: [
-          { id: 'gpu-monitor', label: 'GPU Monitor', icon: '📊', action: 'gpu-monitor' },
-          { id: 'llm-settings', label: 'GPU Settings', icon: '⚙️', action: 'llm-settings' },
-        ],
-      },
-      {
-        id: 'gpu-ai', label: 'AI Engines', icon: '🤖',
-        children: [
-          { id: 'llm-chat', label: 'LLM Chat', icon: '💬', action: 'llm-chat' },
-          { id: 'llm-sentiment', label: 'Sentiment Engine', icon: '🎭', action: 'llm-sentiment' },
-          { id: 'llm-vectors', label: 'Vector Clustering', icon: '🧬', action: 'llm-vectors' },
-          { id: 'llm-analytics', label: 'GPU Analytics', icon: '📈', action: 'llm-analytics' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'smart', label: 'Smart', icon: '🧠',
-    children: [
-      { id: 'smart-velocity', label: 'Velocity Scanner', icon: '🚀', action: 'smart-velocity' },
-      { id: 'smart-impact', label: 'Price Impact', icon: '💥', action: 'smart-impact' },
-      { id: 'smart-leadlag', label: 'Lead-Lag Analysis', icon: '🔗', action: 'smart-leadlag' },
-      { id: 'smart-heatmap', label: 'Heatmap', icon: '🗺️', action: 'smart-heatmap' },
-    ],
-  },
-  { id: 'alerts', label: 'Alerts', icon: '🔔', action: 'alerts' },
-  {
-    id: 'math', label: 'Math', icon: '🧮',
-    children: [
-      { id: 'math-regression', label: 'Regression', icon: '📈', action: 'math-regression' },
-      { id: 'math-correlation', label: 'Correlation', icon: '🔗', action: 'math-correlation' },
-      { id: 'math-distribution', label: 'Distribution', icon: '📊', action: 'math-distribution' },
-      { id: 'math-volatility', label: 'Volatility & Risk', icon: '⚡', action: 'math-volatility' },
-      { id: 'math-timeseries', label: 'Time Series', icon: '⏱️', action: 'math-timeseries' },
-      { id: 'math-advanced', label: 'Advanced', icon: '🧬', action: 'math-advanced' },
-    ],
-  },
-  {
-    id: 'srs', label: 'SRS', icon: '🏦',
-    children: [
-      { id: 'srs-overview', label: 'Overview', icon: '📋', action: 'srs' },
-      { id: 'srs-products', label: 'Fund Catalog', icon: '💰', action: 'srs' },
-      { id: 'srs-additional', label: 'Other Products', icon: '🔗', action: 'srs' },
-      { id: 'srs-dashboard', label: 'Dashboard', icon: '📊', action: 'srs-dashboard' },
-      { id: 'srs-advisor', label: 'Advisor', icon: '🤖', action: 'srs-advisor' },
-      { id: 'srs-signals', label: 'Signals', icon: '⚡', action: 'srs-signals' },
-    ],
-  },
-  { divider: 'd1' },
-  {
-    id: 'ai', label: 'AI Intelligence', icon: '🧠',
-    children: [
-      { id: 'ai-chat', label: 'Analyst Chat', icon: '💬', action: 'ai-chat' },
-      { id: 'ai-chatbot', label: 'MCP Chatbot', icon: '🤖', action: 'ai-chatbot' },
-      { id: 'ai-doc', label: 'Smart Doc', icon: '📄', action: 'ai-doc' },
-      { id: 'ai-risk', label: 'Risk Radar', icon: '⚠️', action: 'ai-risk' },
-      { id: 'ai-narrative', label: 'Narrative Decoder', icon: '📰', action: 'ai-narrative' },
-      { id: 'ai-catalyst', label: 'Catalyst Engine', icon: '⚡', action: 'ai-catalyst' },
-      { id: 'ai-forecast', label: 'Sentiment Forecast', icon: '🔮', action: 'ai-forecast' },
-    ],
-  },
-  { divider: 'd2' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
-  { id: 'help', label: 'Help Guide', icon: '❓', action: 'help' },
-];
-
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onAction: (action: string) => void;
+  aiEnabled?: boolean;
 }
 
 function isGroup(item: MenuEntry): item is MenuGroup {
@@ -227,8 +92,101 @@ function SubGroup({ group, depth, onAction, expanded, onToggle }: {
   );
 }
 
-export default function Sidebar({ isOpen, onClose, onAction }: Props) {
+export default function Sidebar({ isOpen, onClose, onAction, aiEnabled }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const menu: MenuEntry[] = [
+    { id: 'home', label: 'Home', icon: '🏠', action: 'home' },
+    {
+      id: 'news', label: 'News & Analysis', icon: '📰',
+      children: [
+        { id: 'briefing', label: 'Daily Briefing', icon: '📋', action: 'briefing' },
+        { id: 'search', label: 'Search', icon: '🔍', action: 'search' },
+        { id: 'feeds', label: 'RSS Sources', icon: '📡', action: 'feeds' },
+        {
+          id: 'news-analysis', label: 'Analysis', icon: '📊',
+          children: [
+            { id: 'coverage', label: 'Coverage', icon: '📊', action: 'coverage' },
+            { id: 'events', label: 'Event Radar', icon: '🎯', action: 'events' },
+            { id: 'timeline', label: 'Timeline', icon: '🕐', action: 'timeline' },
+            { id: 'bias-compare', label: 'Bias Comparator', icon: '⚖️', action: 'bias-compare' },
+          ],
+        },
+        {
+          id: 'news-data', label: 'Data', icon: '📈',
+          children: [
+            { id: 'news-vs-price', label: 'News vs Price', icon: '📈', action: 'news-vs-price' },
+            { id: 'news-archive', label: 'News Archive', icon: '🗄️', action: 'news-archive' },
+            { id: 'sentiment', label: 'Sentiment', icon: '🎭', action: 'sentiment' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'market', label: 'Market', icon: '💰',
+      children: [
+        { id: 'stocks', label: 'Stock Library', icon: '📊', action: 'stocks' },
+        { id: 'market-analytics', label: 'Analytics', icon: '📈', action: 'analytics' },
+        { id: 'stock-advisor', label: 'Stock Advisor', icon: '🏦', action: 'stock-advisor' },
+        { id: 'deep-research', label: 'Deep Research', icon: '🔬', action: 'deep-research' },
+      ],
+    },
+    {
+      id: 'intelligence', label: 'Intelligence', icon: '🔮',
+      children: [
+        { id: 'janus', label: 'Janus Intelligence', icon: '👁️', action: 'janus-command' },
+        { id: 'correlation', label: 'Correlation', icon: '🔗', action: 'correlation' },
+        {
+          id: 'smart', label: 'Smart Analytics', icon: '⚡',
+          children: [
+            { id: 'smart-velocity', label: 'Velocity Scanner', icon: '🚀', action: 'smart-velocity' },
+            { id: 'smart-impact', label: 'Impact Dashboard', icon: '💥', action: 'smart-impact' },
+            { id: 'smart-leadlag', label: 'Lead-Lag', icon: '🔄', action: 'smart-leadlag' },
+            { id: 'smart-heatmap', label: 'Heatmap', icon: '🌡️', action: 'smart-heatmap' },
+          ],
+        },
+        {
+          id: 'math', label: 'Math Lab', icon: '🧮',
+          children: [
+            { id: 'math-regression', label: 'Regression', icon: '📉', action: 'math-regression' },
+            { id: 'math-correlation', label: 'Correlation', icon: '🔗', action: 'math-correlation' },
+            { id: 'math-distribution', label: 'Distribution', icon: '📊', action: 'math-distribution' },
+            { id: 'math-volatility', label: 'Volatility', icon: '📈', action: 'math-volatility' },
+            { id: 'math-timeseries', label: 'Time Series', icon: '🕐', action: 'math-timeseries' },
+            { id: 'math-advanced', label: 'Advanced', icon: '🔬', action: 'math-advanced' },
+          ],
+        },
+        { id: 'world-map', label: 'World Map', icon: '🗺️', action: 'world-map' },
+      ],
+    },
+    {
+      id: 'srs', label: 'SRS Products', icon: '💼',
+      children: [
+        { id: 'srs-overview', label: 'Overview', icon: '📋', action: 'srs' },
+        { id: 'srs-products', label: 'Fund Catalog', icon: '💰', action: 'srs' },
+        { id: 'srs-additional', label: 'Other Products', icon: '🔗', action: 'srs' },
+        { id: 'srs-dashboard', label: 'Dashboard', icon: '📊', action: 'srs-dashboard' },
+        { id: 'srs-advisor', label: 'Advisor', icon: '🤖', action: 'srs-advisor' },
+        { id: 'srs-signals', label: 'Signals', icon: '⚡', action: 'srs-signals' },
+      ],
+    },
+    { divider: 'd1' },
+    {
+      id: 'ai', label: 'AI Intelligence', icon: '🧠',
+      children: [
+        { id: 'ai-chat', label: 'Analyst Chat', icon: '💬', action: 'ai-chat', disabled: !aiEnabled },
+        { id: 'ai-chatbot', label: 'MCP Chatbot', icon: '🤖', action: 'ai-chatbot', disabled: !aiEnabled },
+        { id: 'ai-doc', label: 'Smart Doc', icon: '📄', action: 'ai-doc', disabled: !aiEnabled },
+        { id: 'ai-risk', label: 'Risk Radar', icon: '⚠️', action: 'ai-risk', disabled: !aiEnabled },
+        { id: 'ai-narrative', label: 'Narrative Decoder', icon: '📰', action: 'ai-narrative', disabled: !aiEnabled },
+        { id: 'ai-catalyst', label: 'Catalyst Engine', icon: '⚡', action: 'ai-catalyst', disabled: !aiEnabled },
+        { id: 'ai-forecast', label: 'Sentiment Forecast', icon: '🔮', action: 'ai-forecast', disabled: !aiEnabled },
+      ],
+    },
+    { divider: 'd2' },
+    { id: 'settings', label: 'Settings', icon: '⚙️', action: 'settings' },
+    { id: 'help', label: 'Help Guide', icon: '❓', action: 'help' },
+  ];
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape' && isOpen) onClose();
@@ -281,7 +239,7 @@ export default function Sidebar({ isOpen, onClose, onAction }: Props) {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-3 px-3">
-            {MENU.map((item) => {
+            {menu.map((item) => {
               if (isDivider(item)) {
                 return <div key={item.divider} className="my-2 border-t border-gray-100 dark:border-gray-700" />;
               }

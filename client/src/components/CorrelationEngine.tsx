@@ -200,7 +200,7 @@ function TickerAnalysis() {
       {result && (
         <>
           {/* Correlation summary */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm text-center">
               <div className={`text-2xl font-bold ${corrLabel(result.correlation).color}`}>{result.correlation.toFixed(3)}</div>
               <div className="text-[10px] text-gray-400 mt-1">Pearson r</div>
@@ -414,7 +414,7 @@ function NarrativeStrength() {
         <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
       ) : data && (
         <>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm text-center">
               <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{data.summary.totalArticles}</div>
               <div className="text-[10px] text-gray-400 mt-1">Total articles</div>

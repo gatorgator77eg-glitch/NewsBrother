@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { explainRecommendation } from '../api';
 
 interface StockScore {
   symbol: string;
@@ -121,10 +122,16 @@ function formatMarketCap(cap: number): string {
 interface Props {
   stock: StockScore;
   compact?: boolean;
+  countryCode?: string;
+  countryName?: string;
+  aiEnabled?: boolean;
 }
 
-export default function RecommendationCard({ stock, compact }: Props) {
+export default function RecommendationCard({ stock, compact, countryCode, countryName, aiEnabled }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [explanation, setExplanation] = useState('');
+  const [explainLoading, setExplainLoading] = useState(false);
+  const [explainError, setExplainError] = useState('');
   const badge = signalBadge(stock.signal);
   const capBadge = capTierBadge(stock.capTier || 'small');
 
@@ -261,6 +268,53 @@ export default function RecommendationCard({ stock, compact }: Props) {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* AI Explain */}
+          {countryCode && countryName && (
+            <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+              {!explanation && !explainLoading && (
+                <button
+                  disabled={!aiEnabled}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setExplainLoading(true);
+                    setExplainError('');
+                    try {
+                      const result = await explainRecommendation(stock as any, countryCode, countryName);
+                      setExplanation(result.explanation);
+                    } catch (err: any) {
+                      setExplainError(err.message || 'Failed to generate explanation');
+                    }
+                    setExplainLoading(false);
+                  }}
+                  className={`text-[11px] px-3 py-1.5 rounded-lg transition-colors font-medium ${
+                    aiEnabled
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {aiEnabled ? '✨ Explain this pick' : '✨ AI is OFF'}
+                </button>
+              )}
+              {explainLoading && (
+                <div className="flex items-center gap-2 py-2">
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-purple-500 border-t-transparent" />
+                  <span className="text-[11px] text-purple-400">AI is analyzing {stock.symbol}...</span>
+                </div>
+              )}
+              {explainError && (
+                <p className="text-[11px] text-red-400 mt-1">{explainError}</p>
+              )}
+              {explanation && (
+                <div className="mt-1">
+                  <p className="text-[10px] font-medium text-purple-400 mb-1.5">AI ANALYSIS</p>
+                  <div className="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                    {explanation}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -115,7 +115,7 @@ function BetaViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Beta & Alpha — {data.symbol} vs {data.benchmark}</h3>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {metrics.map(m => (
           <div key={m.label} className="bg-gray-900 rounded p-3 text-center">
             <div className="text-xs text-gray-400">{m.label}</div>

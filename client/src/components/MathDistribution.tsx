@@ -64,7 +64,7 @@ function ReturnsViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Log Returns Distribution — {data.symbol}</h3>
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         {[
           { label: 'Mean', value: mean.toFixed(6) },
           { label: 'Std Dev', value: std.toFixed(6) },
@@ -108,7 +108,7 @@ function NormalViz({ data }: { data: any }) {
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Normality Tests — {data.symbol}</h3>
       <div className={`bg-gray-900 rounded p-3 mb-4 text-center text-lg font-bold ${conclusion === 'Normal' ? 'text-green-400' : 'text-yellow-400'}`}>{conclusion}</div>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div className="bg-gray-900 rounded p-4">
           <h4 className="text-sm font-semibold text-gray-300 mb-2">Jarque-Bera Test</h4>
           <div className="text-sm text-gray-400">Statistic: <span className="text-blue-400 font-mono">{jarqueBera.statistic.toFixed(4)}</span></div>
@@ -122,7 +122,7 @@ function NormalViz({ data }: { data: any }) {
       </div>
       <div className="bg-gray-900 rounded p-4">
         <h4 className="text-sm font-semibold text-gray-300 mb-2">Percentiles</h4>
-        <div className="grid grid-cols-9 gap-1">
+        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1">
           {percentiles.map((p: any) => (
             <div key={p.percentile} className="text-center text-xs">
               <div className="text-gray-500">{p.percentile}%</div>

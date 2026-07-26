@@ -169,7 +169,7 @@ function PickCard({ fund, rank }: { fund: FundScore; rank: number }) {
         </div>
 
         {/* Period returns */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
           <ReturnBadge label="1M" value={fund.periodReturns['1m']} />
           <ReturnBadge label="3M" value={fund.periodReturns['3m']} />
           <ReturnBadge label="6M" value={fund.periodReturns['6m']} />
@@ -177,7 +177,7 @@ function PickCard({ fund, rank }: { fund: FundScore; rank: number }) {
         </div>
 
         {/* Key stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
           <div className="bg-gray-50 dark:bg-gray-750 rounded-lg p-2 text-center">
             <div className="text-[9px] text-gray-400">Sharpe</div>
             <div className={`text-sm font-bold ${fund.sharpeRaw > 1 ? 'text-green-600 dark:text-green-400' : fund.sharpeRaw > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'}`}>

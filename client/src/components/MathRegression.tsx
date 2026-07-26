@@ -80,7 +80,7 @@ function LinearViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Linear Regression — {data.symbol}</h3>
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         {[
           { label: 'R²', value: r2.toFixed(4), color: r2 > 0.7 ? 'text-green-400' : 'text-yellow-400' },
           { label: 'Slope', value: slope.toFixed(6), color: slope > 0 ? 'text-green-400' : 'text-red-400' },
@@ -123,7 +123,7 @@ function ExpViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Exponential Regression — {data.symbol}</h3>
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
         <div className="bg-gray-900 rounded p-3 text-center"><div className="text-xs text-gray-400">Daily Growth</div><div className="text-lg font-bold text-green-400">{(dailyGrowth * 100).toFixed(3)}%</div></div>
         <div className="bg-gray-900 rounded p-3 text-center"><div className="text-xs text-gray-400">R² (Log)</div><div className="text-lg font-bold text-blue-400">{r2.toFixed(4)}</div></div>
         <div className="bg-gray-900 rounded p-3 text-center"><div className="text-xs text-gray-400">Base Value</div><div className="text-lg font-bold text-yellow-400">${baseValue.toFixed(2)}</div></div>

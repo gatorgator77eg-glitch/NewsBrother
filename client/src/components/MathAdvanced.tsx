@@ -84,7 +84,7 @@ function FourierViz({ data }: { data: any }) {
           <rect key={i} x={sx(i) - 1} y={sy(s.power)} width={3} height={sy(0) - sy(s.power)} fill="#3B82F6" opacity="0.7" />
         ))}
       </svg>
-      <div className="grid grid-cols-5 gap-2 mt-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-3">
         {topCycles.map((c: any, i: number) => (
           <div key={i} className="bg-gray-900 rounded p-2 text-center">
             <div className="text-xs text-gray-400">Cycle {i + 1}</div>
@@ -147,7 +147,7 @@ function PortfolioViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Markowitz Optimal Portfolio</h3>
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <div className="bg-green-900/30 rounded p-3">
           <div className="text-sm text-green-400 font-semibold">Max Sharpe Portfolio</div>
           <div className="text-xs text-gray-400">Return: {(oRet * 100).toFixed(1)}% | Vol: {(oVol * 100).toFixed(1)}% | Sharpe: {oSharpe.toFixed(3)}</div>
@@ -190,7 +190,7 @@ function FrontierViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Efficient Frontier — {data.symbol} vs {data.benchmark}</h3>
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         {[
           { label: 'Alpha', value: `${(alpha * 100).toFixed(2)}%`, color: alpha > 0 ? 'text-green-400' : 'text-red-400' },
           { label: 'Beta', value: beta.toFixed(3), color: 'text-blue-400' },
@@ -226,7 +226,7 @@ function PCAViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Principal Component Analysis</h3>
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
         {loadings.map((l: any) => (
           <div key={l.component} className="bg-gray-900 rounded p-3 text-center">
             <div className="text-xs text-gray-400">PC{l.component}</div>

@@ -133,6 +133,7 @@ async function runChatLoop(
 
   const allToolCalls: ToolCall[] = [];
   let finalContent = '';
+  let lastLlmText = '';
   const MAX_ROUNDS = 5;
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
@@ -142,61 +143,76 @@ async function runChatLoop(
     try {
       llmResponse = await callLlmWithTools(allMessages, mcpToolDefs, config);
     } catch (err: any) {
-      llmResponse = `I encountered an error: ${err.message}`;
-    }
-
-    // Parse tool calls from LLM response
-    const toolCalls = parseToolCalls(llmResponse);
-
-    if (toolCalls.length === 0) {
-      finalContent = extractTextContent(llmResponse);
+      log.error('LLM call failed in round', { round, error: err.message });
+      finalContent = `I encountered an error communicating with the AI: ${err.message}`;
       break;
     }
 
-    // Execute each tool call
+    const toolCalls = parseToolCalls(llmResponse);
+
+    if (toolCalls.length === 0) {
+      lastLlmText = extractTextContent(llmResponse);
+      finalContent = lastLlmText;
+      log.info('LLM returned text (no tool calls)', { round, length: lastLlmText.length });
+      break;
+    }
+
+    log.info('LLM returned tool calls', { round, count: toolCalls.length, tools: toolCalls.map(t => t.name) });
+
+    // Push the actual LLM response as assistant message so the model sees its own reasoning
+    allMessages.push({
+      role: 'assistant',
+      content: `I need to call tools: ${toolCalls.map(t => `${t.name}(${JSON.stringify(t.arguments)})`).join(', ')}`,
+    });
+
     for (const tc of toolCalls) {
       allToolCalls.push(tc);
       if (onEvent) onEvent('tool_call', { name: tc.name, args: tc.arguments });
 
-      let result: any;
+      let resultStr: string;
       try {
         const mcpResult = await mcpClient.callTool({ name: tc.name, arguments: tc.arguments });
         const content = mcpResult.content as any;
-        result = content?.[0]?.text || JSON.stringify(mcpResult);
+        const raw = content?.[0]?.text || JSON.stringify(mcpResult);
+        resultStr = typeof raw === 'string' ? raw : JSON.stringify(raw);
       } catch (err: any) {
-        result = { error: err.message };
+        resultStr = JSON.stringify({ error: err.message });
         log.error('MCP tool call failed', { tool: tc.name, error: err.message });
       }
 
-      const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
       if (onEvent) onEvent('tool_result', { name: tc.name, result: resultStr.slice(0, 500) });
 
-      // Feed tool result back into conversation
-      allMessages.push({
-        role: 'assistant',
-        content: `I'll call the ${tc.name} tool to get that information.`,
-      });
+      // Truncate to avoid context overflow
       allMessages.push({
         role: 'user',
-        content: `[Tool result for ${tc.name}]:\n${resultStr.slice(0, 6000)}`,
+        content: `Result from ${tc.name}:\n${resultStr.slice(0, 8000)}`,
       });
     }
   }
 
-  // Always make a final synthesis call — force the LLM to build a comprehensive answer from gathered data
-  if (allToolCalls.length > 0) {
+  // Final synthesis call — force a comprehensive answer from all gathered data
+  if (allToolCalls.length > 0 && finalContent.length < 50) {
     if (onEvent) onEvent('thinking', { round: 'synthesis' });
 
     allMessages.push({
-      role: 'user',
-      content: `You now have all the data from the tools above. Based on ALL the tool results provided in this conversation, write a comprehensive, specific answer to the original question. Do NOT call any more tools. Analyze the data, identify patterns, and give the user a clear, actionable answer with specific numbers, dates, and sources.`,
+      role: 'assistant',
+      content: 'I now have all the data I need. Let me synthesize a comprehensive answer.',
     });
+    allMessages.push({
+      role: 'user',
+      content: `Based on ALL the tool results above, write a comprehensive answer to the original question. Include specific numbers, dates, sources, and actionable insights. Do NOT call any tools — just write the answer directly.`,
+    });
+
+    log.info('Starting synthesis call', { messageCount: allMessages.length, toolCallsUsed: allToolCalls.length });
 
     try {
       const synthesisResponse = await callLlmWithTools(allMessages, [], config);
       const synthesized = extractTextContent(synthesisResponse);
+      log.info('Synthesis result', { length: synthesized.length, preview: synthesized.slice(0, 200) });
       if (synthesized && synthesized.length > 20) {
         finalContent = synthesized;
+      } else {
+        log.warn('Synthesis too short, using last LLM text', { len: synthesized.length });
       }
     } catch (err: any) {
       log.error('Synthesis call failed', { error: err.message });
@@ -317,9 +333,13 @@ function parseToolCalls(response: string): ToolCall[] {
 }
 
 function extractTextContent(response: string): string {
+  if (!response) return '';
   try {
     const parsed = JSON.parse(response);
+    // If it's a tool_calls object, return empty (shouldn't happen in synthesis)
+    if (parsed.tool_calls) return '';
     if (typeof parsed === 'string') return parsed;
+    if (typeof parsed === 'object' && parsed.content) return String(parsed.content);
     return response;
   } catch {
     return response;

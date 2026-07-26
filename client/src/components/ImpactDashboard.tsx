@@ -68,7 +68,7 @@ export default function ImpactDashboard({ data, loading }: Props) {
         <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
           Signal Summary
         </h3>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           <div className="text-center p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20">
             <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{summary.buySignals}</div>
             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">BUY</div>

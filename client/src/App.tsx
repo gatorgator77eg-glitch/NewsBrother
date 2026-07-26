@@ -6,6 +6,7 @@ import KnowledgeGraph from './components/KnowledgeGraph';
 import CompareDrawer from './components/CompareDrawer';
 import BlindspotAlert from './components/BlindspotAlert';
 import ThemeToggle from './components/ThemeToggle';
+import AiToggle from './components/AiToggle';
 import Toast from './components/Toast';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import TopicDetailModal from './components/TopicDetailModal';
@@ -111,12 +112,26 @@ export default function App() {
   const [showAi, setShowAi] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(() => localStorage.getItem('aiEnabled') === 'true');
+  const [selectedLlmId, setSelectedLlmId] = useState<number | null>(() => {
+    const v = localStorage.getItem('selectedLlmId');
+    return v ? parseInt(v) : null;
+  });
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const resultsCountRef = useRef(0);
 
   useEffect(() => {
     resultsCountRef.current = results.length;
   }, [results.length]);
+
+  useEffect(() => {
+    localStorage.setItem('aiEnabled', String(aiEnabled));
+  }, [aiEnabled]);
+
+  useEffect(() => {
+    if (selectedLlmId != null) localStorage.setItem('selectedLlmId', String(selectedLlmId));
+    else localStorage.removeItem('selectedLlmId');
+  }, [selectedLlmId]);
 
   useEffect(() => {
     if (viewMode === 'graph' && loaded && results.length > 0 && !graphData) {
@@ -495,6 +510,12 @@ export default function App() {
                   {showFeeds ? 'Hide Feeds' : 'RSS Sources'}
                 </button>
               )}
+              <AiToggle
+                enabled={aiEnabled}
+                selectedId={selectedLlmId}
+                onToggle={setAiEnabled}
+                onSelect={setSelectedLlmId}
+              />
               <ThemeToggle />
             </div>
           </div>
@@ -552,7 +573,7 @@ export default function App() {
         ) : showCorrelation ? (
           <CorrelationEngine onBack={() => setShowCorrelation(false)} />
         ) : showBriefing ? (
-          <DailyBriefing onBack={() => setShowBriefing(false)} />
+          <DailyBriefing onBack={() => setShowBriefing(false)} aiEnabled={aiEnabled} />
         ) : showWatchlist ? (
           <Watchlist onBack={() => setShowWatchlist(false)} />
         ) : showAlerts ? (
@@ -588,7 +609,7 @@ export default function App() {
         ) : showSrsAdvisor ? (
           <SrsAdvisor onBack={() => setShowSrsAdvisor(false)} />
         ) : showStockAdvisor ? (
-          <StockAdvisor onBack={() => setShowStockAdvisor(false)} />
+          <StockAdvisor onBack={() => setShowStockAdvisor(false)} aiEnabled={aiEnabled} />
         ) : showAi ? (
           <AiHub onBack={() => setShowAi(false)} />
         ) : showChatbot ? (
@@ -720,6 +741,7 @@ export default function App() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onAction={handleSidebarAction}
+        aiEnabled={aiEnabled}
       />
 
       {selectedCountry && (

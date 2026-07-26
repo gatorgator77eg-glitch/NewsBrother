@@ -273,6 +273,26 @@ export default function KnowledgeGraph({ data, onNodeClick, className }: Props) 
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('click', handleClick);
     canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('touchstart', handleTouchStart as any, { passive: false });
+
+    function handleTouchStart(event: TouchEvent) {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const rect = canvas!.getBoundingClientRect();
+      const mx = touch.clientX - rect.left;
+      const my = touch.clientY - rect.top;
+      const node = getNodeAtPosition(mx, my);
+      if (node) {
+        event.preventDefault();
+        hoveredNodeRef.current = node.id;
+        setHoveredNode(node.id);
+        setTooltip({ x: touch.clientX, y: touch.clientY, node: node as unknown as GraphNode });
+      } else {
+        hoveredNodeRef.current = null;
+        setHoveredNode(null);
+        setTooltip(null);
+      }
+    }
 
     function handleMouseMove(event: MouseEvent) {
       const rect = canvas!.getBoundingClientRect();
@@ -319,6 +339,7 @@ export default function KnowledgeGraph({ data, onNodeClick, className }: Props) 
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('click', handleClick);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
+      canvas.removeEventListener('touchstart', handleTouchStart as any);
     };
   }, [data, onNodeClick, getNodeAtPosition]);
 

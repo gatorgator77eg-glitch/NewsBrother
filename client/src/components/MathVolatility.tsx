@@ -98,7 +98,7 @@ function VaRViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Value at Risk — {data?.symbol ?? ''}</h3>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {metrics.map(m => (
           <div key={m.label} className="bg-gray-900 rounded p-3 text-center">
             <div className="text-xs text-gray-400">{m.label}</div>
@@ -124,7 +124,7 @@ function MCViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Monte Carlo Simulation — {data?.symbol ?? ''}</h3>
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         <div className="bg-gray-900 rounded p-2 text-center"><div className="text-xs text-gray-400">Last Price</div><div className="text-sm font-bold text-blue-400">${lastPrice.toFixed(2)}</div></div>
         <div className="bg-gray-900 rounded p-2 text-center"><div className="text-xs text-gray-400">Mean</div><div className="text-sm font-bold text-green-400">${stats.mean.toFixed(2)}</div></div>
         <div className="bg-gray-900 rounded p-2 text-center"><div className="text-xs text-gray-400">Prob Up</div><div className="text-sm font-bold text-green-400">{stats.probUp.toFixed(1)}%</div></div>
@@ -162,7 +162,7 @@ function DDViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Drawdown Analysis — {data.symbol}</h3>
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         {[
           { label: 'Max Drawdown', value: `${(maxDrawdown * 100).toFixed(1)}%`, color: 'text-red-400' },
           { label: 'Duration', value: `${maxDDDuration} days`, color: 'text-yellow-400' },

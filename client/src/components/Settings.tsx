@@ -120,7 +120,12 @@ export default function Settings({ onBack }: Props) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(stored) });
+      if (stored) {
+        const parsed = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        setSettings(parsed);
+        const isDark = parsed.theme === 'dark' || (parsed.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', isDark);
+      }
     } catch {}
     fetchConfigs();
     fetchFeeds();
@@ -130,6 +135,11 @@ export default function Settings({ onBack }: Props) {
     const next = { ...settings, [key]: value };
     setSettings(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    if (key === 'theme') {
+      const isDark = value === 'dark' || (value === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', isDark);
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   };
@@ -533,7 +543,7 @@ export default function Settings({ onBack }: Props) {
                 <p className="text-[10px] text-gray-400 mt-1">Unique identifier — cannot be changed later</p>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Name</label>
                 <input value={feedForm.name} onChange={e => setFeedForm(f => ({ ...f, name: e.target.value }))}
@@ -666,7 +676,7 @@ export default function Settings({ onBack }: Props) {
 
         {showForm && (
           <div className="px-5 py-5 bg-gray-50 dark:bg-gray-750 border-t border-gray-100 dark:border-gray-700 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Name</label>
                 <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -701,7 +711,7 @@ export default function Settings({ onBack }: Props) {
                 {editingId && <p className="text-[10px] text-gray-400 mt-1">Leave blank to keep existing key</p>}
               </div>
             )}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Model</label>
                 <input value={form.model} onChange={e => setForm(f => ({ ...f, model: e.target.value }))}
@@ -780,7 +790,7 @@ export default function Settings({ onBack }: Props) {
             {tickerError && (
               <div className="px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs rounded-lg">{tickerError}</div>
             )}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">Symbol *</label>
                 <input value={tickerForm.symbol} onChange={e => setTickerForm(f => ({ ...f, symbol: e.target.value.toUpperCase() }))}

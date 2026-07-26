@@ -158,7 +158,7 @@ export default function DeepResearch({ onBack }: Props) {
       {result && (
         <>
           {/* Tone overview */}
-          <div className="grid grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {[
               { label: 'Articles', value: toneOverview.positive + toneOverview.negative + toneOverview.neutral, color: 'text-blue-600 dark:text-blue-400' },
               { label: 'Avg Tone', value: toneOverview.avg.toFixed(2), color: toneOverview.avg > 0 ? 'text-green-600' : toneOverview.avg < 0 ? 'text-red-500' : 'text-gray-500' },
@@ -205,7 +205,7 @@ export default function DeepResearch({ onBack }: Props) {
           )}
 
           {/* Domains + Countries */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Top Domains</h3>
               <div className="space-y-1.5">

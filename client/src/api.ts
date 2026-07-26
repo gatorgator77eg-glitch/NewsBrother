@@ -1109,6 +1109,32 @@ export async function getSrsAdvisor(): Promise<any> {
   return res.json();
 }
 
+// ── Stock Advisor AI Explain ─────────────────────────────────────────────────
+
+export async function explainRecommendation(
+  stock: {
+    symbol: string; name: string; sector: string; capTier: string;
+    price: number; change1d: number; change1w: number; change1m: number;
+    composite: number; technical: number; sentiment: number; volume: number;
+    relativeStrength: number; macro: number; fundamental: number;
+    signal: string; confidence: number; reasoning: string[];
+    scoreDelta: number; prevSignal: string;
+  },
+  countryCode: string,
+  countryName: string
+): Promise<{ explanation: string; model: string }> {
+  const res = await fetch(`${API_BASE}/recommendations/explain`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ stock, countryCode, countryName }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed' }));
+    throw new Error(err.error || 'Failed to explain recommendation');
+  }
+  return res.json();
+}
+
 // ── AI Hub ──────────────────────────────────────────────────────────────────
 
 export async function aiChat(messages: { role: string; content: string }[], symbol?: string): Promise<any> {

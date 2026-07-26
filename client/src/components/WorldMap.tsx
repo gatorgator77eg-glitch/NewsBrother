@@ -98,7 +98,7 @@ export default function WorldMap({ onSelectCountry }: WorldMapProps) {
 
   if (loading) {
     return (
-      <div className="w-full h-[500px] bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
+      <div className="w-full h-[300px] sm:h-[420px] lg:h-[520px] bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
         <div className="text-gray-500 dark:text-gray-400 text-sm">Loading world map...</div>
       </div>
     );
@@ -107,8 +107,8 @@ export default function WorldMap({ onSelectCountry }: WorldMapProps) {
   const maxCount = Math.max(...countries.map(c => c.articleCount), 1);
 
   return (
-    <div className="w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
-         style={{ height: '520px', zIndex: 0 }}>
+    <div className="w-full h-[300px] sm:h-[420px] lg:h-[520px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
+         style={{ zIndex: 0 }}>
       <MapContainer
         center={[20, 0]}
         zoom={2}

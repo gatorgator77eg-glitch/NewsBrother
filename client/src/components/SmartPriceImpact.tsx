@@ -100,7 +100,7 @@ export default function SmartPriceImpact({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
             <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
               <p className="text-xl font-bold text-red-600 dark:text-red-400">{data.summary.impactByCategory.highImpact}</p>
               <p className="text-[11px] text-red-500">High Impact</p>

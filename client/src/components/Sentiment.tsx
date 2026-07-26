@@ -366,7 +366,7 @@ function TimelineViz({ data, granularity, onGranularityChange, country, onCountr
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <StatCard label="Avg Tone" value={`${data.reduce((s, d) => s + d.avgTone, 0) / data.length > 0 ? '+' : ''}${(data.reduce((s, d) => s + d.avgTone, 0) / data.length).toFixed(2)}`} color={toneTextClass(data.reduce((s, d) => s + d.avgTone, 0) / data.length)} />
         <StatCard label="Total Articles" value={data.reduce((s, d) => s + d.articleCount, 0).toLocaleString()} />
         <StatCard label="Peak Positive" value={`${Math.max(...tones).toFixed(1)}`} color="text-green-600 dark:text-green-400" />
@@ -608,7 +608,7 @@ function DistributionViz({ buckets, avgTone, total }: { buckets: DistBucket[]; a
         </svg>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <StatCard label="Avg Tone" value={`${avgTone > 0 ? '+' : ''}${avgTone}`} color={toneTextClass(avgTone)} />
         <StatCard label="Total Articles" value={total.toLocaleString()} />
         <StatCard label="Peak Bucket" value={`${buckets.reduce((max, b) => b.count > max.count ? b : max, buckets[0]).bucket}`} />
@@ -733,7 +733,7 @@ function LeftRightViz({ data, uncat }: { data: LeftRightEntry[]; uncat: { avgTon
   return (
     <div className="space-y-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {data.map(d => (
           <div key={d.category} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 text-center">
             <div className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: COLORS[d.category] }}>
@@ -790,7 +790,7 @@ function LeftRightViz({ data, uncat }: { data: LeftRightEntry[]; uncat: { avgTon
       {/* Top sources per category */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4">
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Top Sources by Category</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.map(d => (
             <div key={d.category}>
               <div className="text-xs font-bold mb-2" style={{ color: COLORS[d.category] }}>{d.category}</div>

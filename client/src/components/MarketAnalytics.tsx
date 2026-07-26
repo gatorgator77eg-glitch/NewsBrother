@@ -154,7 +154,7 @@ function MoversViz({ data }: { data: any[] }) {
         ))}
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-        <div className="max-h-[500px] overflow-y-auto">
+        <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
               <tr className="text-xs text-gray-500 dark:text-gray-400">

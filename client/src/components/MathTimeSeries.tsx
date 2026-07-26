@@ -127,7 +127,7 @@ function StationViz({ data }: { data: any }) {
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Augmented Dickey-Fuller Test — {data.symbol}</h3>
       <div className={`bg-gray-900 rounded p-4 mb-4 text-center text-xl font-bold ${isStationary ? 'text-green-400' : 'text-red-400'}`}>{conclusion}</div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-gray-900 rounded p-4">
           <h4 className="text-sm text-gray-300 font-semibold mb-2">Test Statistic</h4>
           <div className="text-2xl font-bold text-blue-400">{adfStat.toFixed(4)}</div>
@@ -165,7 +165,7 @@ function EntropyViz({ data }: { data: any }) {
   return (
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-3">Shannon Entropy — {data.symbol}</h3>
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         {[
           { label: 'Entropy', value: totalEntropy.toFixed(3), color: 'text-blue-400' },
           { label: 'Normalized', value: normalizedEntropy.toFixed(3), color: 'text-purple-400' },

@@ -40,6 +40,8 @@ export default function ArticleCard({ article, bias, onCompare, onHover, isHighl
       className={`bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm card-hover cursor-pointer ring-1 ring-transparent ${styles.ring} ${isHighlighted ? 'article-highlight opacity-100' : ''} ${isHighlighted === false ? 'opacity-40' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleMouseEnter}
+      onTouchEnd={handleMouseLeave}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${styles.badge}`}>

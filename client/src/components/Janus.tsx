@@ -459,7 +459,7 @@ function ShockwaveViz({ data, topic, onTopicChange, onSearch }: {
       {data && (
         <>
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 text-center">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{data.articleCount}</div>
               <div className="text-xs text-gray-500 mt-1">Matching Articles</div>

@@ -58,7 +58,7 @@ function hoursAgo(dateStr: string): string {
   return `${Math.round(diff / 24)}d`;
 }
 
-export default function DailyBriefing({ onBack }: { onBack: () => void }) {
+export default function DailyBriefing({ onBack, aiEnabled }: { onBack: () => void; aiEnabled?: boolean }) {
   const [data, setData] = useState<BriefingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export default function DailyBriefing({ onBack }: { onBack: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (!data) return;
+    if (!data || !aiEnabled) return;
     setAiLoading(true);
     fetch('/api/briefing/ai-summary', { method: 'POST' })
       .then(r => r.json())
@@ -84,7 +84,7 @@ export default function DailyBriefing({ onBack }: { onBack: () => void }) {
       })
       .catch(() => setAiReason('Failed to generate AI summary.'))
       .finally(() => setAiLoading(false));
-  }, [data]);
+  }, [data, aiEnabled]);
 
   return (
     <div>

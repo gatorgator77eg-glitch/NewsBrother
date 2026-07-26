@@ -3,6 +3,7 @@ import { COUNTRIES, getCountryByCode } from '../recommendations/universe';
 import { generateRecommendations, CountryRecommendation } from '../recommendations/engine';
 import { getCountrySentiment } from '../recommendations/sentiment';
 import { getNewsArchiveDb } from '../newsArchive/db';
+import { callLlm, getDefaultLlmConfig } from '../utils/llmClient';
 import { createLogger } from '../logger';
 
 const log = createLogger({ module: 'recs-routes' });
@@ -325,6 +326,86 @@ recommendationRoutes.get('/recommendations/backtest/:country', async (req: Reque
     res.json({ backtest });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to run backtest' });
+  }
+});
+
+// ── AI Explain ──────────────────────────────────────────────────────────────
+
+recommendationRoutes.post('/recommendations/explain', async (req: Request, res: Response) => {
+  try {
+    const { stock, countryCode, countryName } = req.body as {
+      stock: {
+        symbol: string; name: string; sector: string; capTier: string;
+        price: number; change1d: number; change1w: number; change1m: number;
+        composite: number; technical: number; sentiment: number; volume: number;
+        relativeStrength: number; macro: number; fundamental: number;
+        signal: string; confidence: number; reasoning: string[];
+        scoreDelta: number; prevSignal: string;
+      };
+      countryCode: string;
+      countryName: string;
+    };
+
+    if (!stock?.symbol) {
+      res.status(400).json({ error: 'stock data with symbol is required' });
+      return;
+    }
+
+    const config = await getDefaultLlmConfig();
+    if (!config) {
+      res.status(500).json({ error: 'No LLM configured. Add one in Settings > LLM Configuration.' });
+      return;
+    }
+
+    const prompt = `You are a senior equity research analyst. Explain this stock recommendation in plain language for an investor. Be specific, cite the actual numbers, and give a clear verdict.
+
+STOCK: ${stock.symbol} — ${stock.name}
+MARKET: ${countryName} (${countryCode})
+SECTOR: ${stock.sector} | CAP: ${stock.capTier}
+
+PRICE DATA:
+- Current: $${stock.price?.toFixed(2) || 'N/A'}
+- 1-day: ${stock.change1d >= 0 ? '+' : ''}${stock.change1d?.toFixed(1)}%
+- 1-week: ${stock.change1w >= 0 ? '+' : ''}${stock.change1w?.toFixed(1)}%
+- 1-month: ${stock.change1m >= 0 ? '+' : ''}${stock.change1m?.toFixed(1)}%
+
+SIGNAL: ${stock.signal?.replace('_', ' ')} (composite score: ${stock.composite > 0 ? '+' : ''}${stock.composite}, confidence: ${(stock.confidence * 100).toFixed(0)}%)
+${stock.prevSignal && stock.prevSignal !== stock.signal ? `Previous signal: ${stock.prevSignal.replace('_', ' ')} → ${stock.signal.replace('_', ' ')} (score changed by ${stock.scoreDelta > 0 ? '+' : ''}${stock.scoreDelta})` : ''}
+
+6-DIMENSION SCORES (range: -100 to +100):
+- Technical: ${stock.technical > 0 ? '+' : ''}${stock.technical}
+- Sentiment: ${stock.sentiment > 0 ? '+' : ''}${stock.sentiment}
+- Volume: ${stock.volume > 0 ? '+' : ''}${stock.volume}
+- Relative Strength: ${stock.relativeStrength > 0 ? '+' : ''}${stock.relativeStrength}
+- Macro: ${stock.macro > 0 ? '+' : ''}${stock.macro}
+- Fundamental: ${stock.fundamental > 0 ? '+' : ''}${stock.fundamental}
+
+ENGINE REASONING:
+${stock.reasoning?.map(r => `- ${r}`).join('\n') || '- (none)'}
+
+Write 3-5 paragraphs covering:
+1. What the signal means and why
+2. Key strengths and weaknesses from the scores
+3. Risk factors to watch
+4. A clear actionable verdict (not financial advice, but analytical opinion)
+
+Be direct, specific, and cite the actual numbers. Do not use disclaimers or filler.`;
+
+    const text = await callLlm(
+      [{ role: 'user', content: prompt }],
+      config,
+      { maxTokens: 1024, temperature: 0.5, timeoutMs: 120000 }
+    );
+
+    if (!text) {
+      res.status(500).json({ error: 'LLM returned empty response' });
+      return;
+    }
+
+    res.json({ explanation: text, model: config.model });
+  } catch (err: any) {
+    log.error('Failed to explain recommendation', { error: err.message });
+    res.status(500).json({ error: `Failed to generate explanation: ${err.message}` });
   }
 });
 
