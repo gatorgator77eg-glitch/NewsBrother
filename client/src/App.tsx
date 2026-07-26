@@ -43,6 +43,7 @@ import SrsDashboard from './components/SrsDashboard';
 import SrsAdvisor from './components/SrsAdvisor';
 import StockAdvisor from './components/StockAdvisor';
 import AiHub from './components/AiHub';
+import Chatbot from './components/Chatbot';
 import HelpGuide from './components/HelpGuide';
 import WorldMap from './components/WorldMap';
 import CountrySidebar from './components/CountrySidebar';
@@ -108,6 +109,7 @@ export default function App() {
   const [showSrsAdvisor, setShowSrsAdvisor] = useState(false);
   const [showStockAdvisor, setShowStockAdvisor] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const resultsCountRef = useRef(0);
@@ -230,6 +232,7 @@ export default function App() {
     setShowSrsAdvisor(false);
     setShowStockAdvisor(false);
     setShowAi(false);
+    setShowChatbot(false);
     setShowHelp(false);
   };
 
@@ -390,6 +393,10 @@ export default function App() {
         hideAll();
         setShowAi(true);
         break;
+      case 'ai-chatbot':
+        hideAll();
+        setShowChatbot(true);
+        break;
       case 'help':
         hideAll();
         setShowHelp(true);
@@ -429,7 +436,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor && !showHelp;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor && !showStockAdvisor && !showAi && !showChatbot && !showHelp;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -584,6 +591,10 @@ export default function App() {
           <StockAdvisor onBack={() => setShowStockAdvisor(false)} />
         ) : showAi ? (
           <AiHub onBack={() => setShowAi(false)} />
+        ) : showChatbot ? (
+          <div className="max-w-4xl mx-auto p-6">
+            <Chatbot />
+          </div>
         ) : showHelp ? (
           <HelpGuide onBack={() => setShowHelp(false)} />
         ) : (

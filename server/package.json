@@ -10,6 +10,7 @@
     "download-stocks": "ts-node src/downloadStocks.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.19.2",

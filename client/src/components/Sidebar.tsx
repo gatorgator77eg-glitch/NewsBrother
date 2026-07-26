@@ -140,6 +140,7 @@ const MENU: MenuEntry[] = [
     id: 'ai', label: 'AI Intelligence', icon: '🧠',
     children: [
       { id: 'ai-chat', label: 'Analyst Chat', icon: '💬', action: 'ai-chat' },
+      { id: 'ai-chatbot', label: 'MCP Chatbot', icon: '🤖', action: 'ai-chatbot' },
       { id: 'ai-doc', label: 'Smart Doc', icon: '📄', action: 'ai-doc' },
       { id: 'ai-risk', label: 'Risk Radar', icon: '⚠️', action: 'ai-risk' },
       { id: 'ai-narrative', label: 'Narrative Decoder', icon: '📰', action: 'ai-narrative' },

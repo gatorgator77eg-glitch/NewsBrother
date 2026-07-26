@@ -1170,3 +1170,55 @@ export async function aiSmartDoc(document: string, question: string, history?: {
   if (!res.ok) throw new Error('AI smart doc failed');
   return res.json();
 }
+
+export async function chatbotStream(
+  messages: { role: string; content: string }[],
+  onEvent: (event: string, data: any) => void
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/chatbot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, stream: true }),
+  });
+
+  if (!res.ok) throw new Error('Chatbot request failed');
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('No response stream');
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    let currentEvent = '';
+    for (const line of lines) {
+      if (line.startsWith('event: ')) {
+        currentEvent = line.slice(7).trim();
+      } else if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6));
+          onEvent(currentEvent, data);
+        } catch {}
+      }
+    }
+  }
+}
+
+export async function chatbotSend(
+  messages: { role: string; content: string }[]
+): Promise<{ content: string; toolCalls: any[] }> {
+  const res = await fetch(`${API_BASE}/chatbot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, stream: false }),
+  });
+  if (!res.ok) throw new Error('Chatbot request failed');
+  return res.json();
+}
