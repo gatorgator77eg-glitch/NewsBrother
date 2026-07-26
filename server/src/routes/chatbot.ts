@@ -174,12 +174,32 @@ async function runChatLoop(
       // Feed tool result back into conversation
       allMessages.push({
         role: 'assistant',
-        content: JSON.stringify({ tool_calls: [{ id: tc.id, name: tc.name, arguments: tc.arguments }] }),
+        content: `I'll call the ${tc.name} tool to get that information.`,
       });
       allMessages.push({
         role: 'user',
         content: `[Tool result for ${tc.name}]:\n${resultStr.slice(0, 6000)}`,
       });
+    }
+  }
+
+  // Always make a final synthesis call — force the LLM to build a comprehensive answer from gathered data
+  if (allToolCalls.length > 0) {
+    if (onEvent) onEvent('thinking', { round: 'synthesis' });
+
+    allMessages.push({
+      role: 'user',
+      content: `You now have all the data from the tools above. Based on ALL the tool results provided in this conversation, write a comprehensive, specific answer to the original question. Do NOT call any more tools. Analyze the data, identify patterns, and give the user a clear, actionable answer with specific numbers, dates, and sources.`,
+    });
+
+    try {
+      const synthesisResponse = await callLlmWithTools(allMessages, [], config);
+      const synthesized = extractTextContent(synthesisResponse);
+      if (synthesized && synthesized.length > 20) {
+        finalContent = synthesized;
+      }
+    } catch (err: any) {
+      log.error('Synthesis call failed', { error: err.message });
     }
   }
 
