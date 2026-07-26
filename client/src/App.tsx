@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import SearchBar from './components/SearchBar';
-import FilterPills from './components/FilterPills';
 import ThreeColumnLayout from './components/ThreeColumnLayout';
 import KnowledgeGraph from './components/KnowledgeGraph';
 import CompareDrawer from './components/CompareDrawer';
@@ -46,6 +45,7 @@ import StockAdvisor from './components/StockAdvisor';
 import AiHub from './components/AiHub';
 import Chatbot from './components/Chatbot';
 import HelpGuide from './components/HelpGuide';
+import Experimentation from './components/Experimentation';
 import WorldMap from './components/WorldMap';
 import CountrySidebar from './components/CountrySidebar';
 import HealthIndicator from './components/HealthIndicator';
@@ -66,7 +66,6 @@ export default function App() {
   const [results, setResults] = useState<StoryNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [compareItem, setCompareItem] = useState<CompareItem | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,6 +111,7 @@ export default function App() {
   const [showAi, setShowAi] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showExperimentation, setShowExperimentation] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(() => localStorage.getItem('aiEnabled') === 'true');
   const [selectedLlmId, setSelectedLlmId] = useState<number | null>(() => {
     const v = localStorage.getItem('selectedLlmId');
@@ -249,6 +249,7 @@ export default function App() {
     setShowAi(false);
     setShowChatbot(false);
     setShowHelp(false);
+    setShowExperimentation(false);
   };
 
   const handleSidebarAction = (action: string) => {
@@ -416,6 +417,10 @@ export default function App() {
         hideAll();
         setShowHelp(true);
         break;
+      case 'experimentation':
+        hideAll();
+        setShowExperimentation(true);
+        break;
     }
   };
 
@@ -451,7 +456,7 @@ export default function App() {
   };
 
   const blindspotNodes = results.filter(n => n.blindspot && n.blindspot.length > 0);
-  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor && !showStockAdvisor && !showAi && !showChatbot && !showHelp;
+  const isHomePage = !showSettings && !showCoverage && !showSearch && !showEvents && !showStocks && !showAnalytics && !showNewsVsPrice && !showNewsArchive && !showJanus && !showSentiment && !showLocalGpu && !showCorrelation && !showBriefing && !showWatchlist && !showAlerts && !showTimeline && !showBiasCompare && !showSmartVelocity && !showSmartImpact && !showSmartLeadLag && !showSmartHeatmap && !showMathRegression && !showMathCorrelation && !showMathDistribution && !showMathVolatility && !showMathTimeSeries && !showMathAdvanced && !showSrs && !showSrsDashboard && !showSrsAdvisor && !showStockAdvisor && !showAi && !showChatbot && !showHelp && !showExperimentation;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -522,7 +527,6 @@ export default function App() {
           {isHomePage && (
             <>
               <SearchBar onSearch={(q) => handleSearch(q, 1)} onBreaking={handleBreakingNews} loading={loading} />
-              <FilterPills active={activeFilter} onSelect={setActiveFilter} />
             </>
           )}
         </div>
@@ -618,6 +622,8 @@ export default function App() {
           </div>
         ) : showHelp ? (
           <HelpGuide onBack={() => setShowHelp(false)} />
+        ) : showExperimentation ? (
+          <Experimentation onBack={() => setShowExperimentation(false)} />
         ) : (
           <>
             {loading && page === 1 && <LoadingSkeleton />}
@@ -673,7 +679,6 @@ export default function App() {
                 {viewMode === 'columns' ? (
                   <ThreeColumnLayout
                     nodes={results}
-                    activeFilter={activeFilter}
                     onCompare={handleCompare}
                     onTopicClick={setTopicDetailId}
                   />

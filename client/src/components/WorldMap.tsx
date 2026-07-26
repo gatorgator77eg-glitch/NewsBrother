@@ -39,22 +39,25 @@ const BIAS_COLORS: Record<string, string> = {
   right: '#ef4444',
 };
 
-function createMarkerIcon(count: number, bias: string): L.DivIcon {
+function createMarkerIcon(title: string, bias: string): L.DivIcon {
   const color = BIAS_COLORS[bias] || '#a3a3a3';
-  const size = Math.min(20 + count * 2, 48);
+  const truncated = title.length > 20 ? title.slice(0, 20) + '…' : title;
+  const width = Math.max(90, truncated.length * 6.5 + 24);
   return L.divIcon({
     className: '',
     html: `<div style="
-      width:${size}px;height:${size}px;border-radius:50%;
-      background:${color};opacity:0.85;
+      width:${width}px;height:26px;border-radius:13px;
+      background:${color};opacity:0.88;
       display:flex;align-items:center;justify-content:center;
-      color:white;font-weight:700;font-size:${size > 30 ? 13 : 11}px;
-      border:2px solid rgba(255,255,255,0.4);
+      color:white;font-weight:600;font-size:10px;letter-spacing:0.2px;
+      border:2px solid rgba(255,255,255,0.45);
       box-shadow:0 2px 8px rgba(0,0,0,0.4);
       cursor:pointer;transition:transform 0.15s;
-    " onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">${count}</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px;
+    " onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'"
+       title="${title.replace(/"/g, '&quot;')}">${truncated}</div>`,
+    iconSize: [width, 26],
+    iconAnchor: [width / 2, 13],
   });
 }
 
@@ -104,8 +107,6 @@ export default function WorldMap({ onSelectCountry }: WorldMapProps) {
     );
   }
 
-  const maxCount = Math.max(...countries.map(c => c.articleCount), 1);
-
   return (
     <div className="w-full h-[300px] sm:h-[420px] lg:h-[520px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
          style={{ zIndex: 0 }}>
@@ -128,15 +129,15 @@ export default function WorldMap({ onSelectCountry }: WorldMapProps) {
           <Marker
             key={c.country}
             position={[c.lat, c.lng]}
-            icon={createMarkerIcon(c.articleCount, c.latestArticle?.bias || 'center')}
+            icon={createMarkerIcon(c.latestArticle?.title || c.country, c.latestArticle?.bias || 'center')}
             eventHandlers={{
               click: () => onSelectCountry(c.country),
             }}
           >
             <Popup>
               <div className="min-w-[200px]">
-                <div className="font-bold text-sm mb-1">{c.country}</div>
-                <div className="text-xs text-gray-500 mb-2">{c.articleCount} articles</div>
+                <div className="font-bold text-sm mb-0.5">{c.country}</div>
+                <div className="text-[10px] text-gray-400 mb-2">{c.articleCount} article{c.articleCount !== 1 ? 's' : ''}</div>
                 {c.latestArticle && (
                   <div>
                     <a

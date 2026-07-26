@@ -9,12 +9,12 @@ interface Props {
   isHighlighted: boolean;
 }
 
-const BIAS_STYLES: Record<string, { badge: string; ring: string }> = {
-  left: { badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', ring: 'hover:ring-blue-300 dark:hover:ring-blue-600' },
-  'lean-left': { badge: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', ring: 'hover:ring-green-300 dark:hover:ring-green-600' },
-  center: { badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300', ring: 'hover:ring-gray-300 dark:hover:ring-gray-600' },
-  'lean-right': { badge: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300', ring: 'hover:ring-orange-300 dark:hover:ring-orange-600' },
-  right: { badge: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', ring: 'hover:ring-red-300 dark:hover:ring-red-600' },
+const BIAS_STYLES: Record<string, { border: string; ring: string }> = {
+  left: { border: 'border-l-blue-500', ring: 'hover:ring-blue-300 dark:hover:ring-blue-600' },
+  'lean-left': { border: 'border-l-green-500', ring: 'hover:ring-green-300 dark:hover:ring-green-600' },
+  center: { border: 'border-l-gray-400', ring: 'hover:ring-gray-300 dark:hover:ring-gray-600' },
+  'lean-right': { border: 'border-l-orange-500', ring: 'hover:ring-orange-300 dark:hover:ring-orange-600' },
+  right: { border: 'border-l-red-500', ring: 'hover:ring-red-300 dark:hover:ring-red-600' },
 };
 
 export default function ArticleCard({ article, bias, onCompare, onHover, isHighlighted }: Props) {
@@ -37,16 +37,13 @@ export default function ArticleCard({ article, bias, onCompare, onHover, isHighl
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm card-hover cursor-pointer ring-1 ring-transparent ${styles.ring} ${isHighlighted ? 'article-highlight opacity-100' : ''} ${isHighlighted === false ? 'opacity-40' : ''}`}
+      className={`bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm card-hover cursor-pointer ring-1 ring-transparent border-l-[3px] ${styles.border} ${styles.ring} ${isHighlighted ? 'article-highlight opacity-100' : ''} ${isHighlighted === false ? 'opacity-40' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleMouseEnter}
       onTouchEnd={handleMouseLeave}
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${styles.badge}`}>
-          {bias.replace('-', ' ').toUpperCase()}
-        </span>
+      <div className="flex items-center justify-end gap-2 mb-2">
         <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeAgo}</span>
       </div>
 

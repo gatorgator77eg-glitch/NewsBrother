@@ -157,6 +157,7 @@ export default function Sidebar({ isOpen, onClose, onAction, aiEnabled }: Props)
           ],
         },
         { id: 'world-map', label: 'World Map', icon: '🗺️', action: 'world-map' },
+        { id: 'experimentation', label: 'Experimentation', icon: '🧪', action: 'experimentation' },
       ],
     },
     {
